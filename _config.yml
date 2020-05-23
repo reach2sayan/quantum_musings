@@ -1,0 +1,24 @@
+title:              Quantum Musings
+email:              reach2sayan@gmail.com
+description:        My personal blog where I write about Materials Science and Machine Learning
+author:             Sayan Samanta
+baseurl:            "/quantum_musings"
+url:                "https://reach2sayan.github.io"
+
+# Social Profiles
+twitter_username:   reach2sayan
+github_username:    reach2sayan
+facebook_username:  justAnotherSaiyan
+linkedin_username:
+
+# Add your google-analytics ID here to activate google analytics
+#google_analytics:   UA-XXXXXXXXX-X # out your google-analytics code
+
+# Build settings
+markdown:           kramdown
+paginate:           5
+paginate_path:      "/posts/page:num/"
+plugins:
+  - jekyll-feed
+  - jekyll-paginate
+  - jekyll-sitemap ## Uncomment this line to silently generate a sitemaps.org compliant sitemap for your Jekyll site
