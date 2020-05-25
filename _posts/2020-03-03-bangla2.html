@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Bangla Character Recognition System — The Deep Learning way (2/n)
+title: Bangla Character Recognition System — The Deep Learning way (2/3)
 subtitle: Convolutional Neural Networks for handwritten Bangla character recognition.
 date: 2020-03-03 23:45:13 -0400
 mathjax: true
@@ -13,139 +13,155 @@ background: /img/posts/bangla2/bangla2_header.jpeg
 
 <p>We are trying to classify bengali handwritten letters into 3 targets — Grapheme roots, vowel diacritics and consonant diacritics. There are a total of 168 different sub-types of roots, 11 sub-types of vowel diacritics and 7 sub-types of consonant roots. Thing to note is that there is a massive imbalance as to the representation of each type in the training data, particularly in the class of grapheme roots. The training data comprise of scanned images of handwritten letters of sizes 137x236, but most of it was white spaces. Therefore we cropped, thresholded and de-noised the images to dimensions of 64x64, with the letters at the center. So now with the data primed for training, let’s look at the architecture.</p>
 
+<figure>
 <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_bprocess.png">
+<figcaption class="caption text-muted">Sample images before processing.</figcaption>
+</figure>
 
-<p>This is both of ours first attempt at a kaggle competition or designing neural nets in the first place, so forgive us for any errors made in the setup or execution. Irrespective of your expertise/interest in the field of Machine Learning / Deep Learning, feel free to join us in our adventure through the ravines and plains (of the loss function) and we slip and climb our way up to the peak (of the metric). Oh yeah, your comments are highly welcome, please help us get a better score (on the course and the competition).</p>
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_aprocess.png">
+<figcaption class="caption text-muted">Sample images after processing.</figcaption>
+</figure>
 
-<p>Here we shall present: the problem statement, description of the data-set with exploratory data analysis, the image processing pipelines, the neural net architecture and results in a series of posts, this being the first of them.</p>
+<h2 class="section-heading">What is a Convolutional Neural Network (CNN)</h2>
 
-<p>Let’s begin…</p>
+<p>We assume that you know what the basic concept of a Neural Network¹ (NN) is. There are zillions of marketing descriptions of them but from a mathematical point of view, it is nothing a step by step procedure of mapping a input vector(s) to the desired output vector(s) through a series of affine transformations. The algorithm decides what those algorithms are (without human interaction, hence the word ‘machine’ learning) by passing known inputs and outputs to the network and then ask the computer to minimize a certain function (called loss function in ML terminology) to figure out which maps do a good job in reducing the error between the actual and the predicted outputs. We do this for a long time in an iterative fashion and we get (hopefully!) our generalized model. In our case, the input vector is a 4096 dimensional vector, since each image is 64x64 pixels, with each pixel having a value 0 or 1, based on whether it is a white pixel or black. On the output side, we have 3 of those of dimensions 168, 11 and 7 for grapheme root, vowel diacritic and consonant diacritic respectively.</p>
 
-<h2 class="section-heading">Exploratory Data Analysis</h2>
+<p>However, while the more vanilla NN, also known as Fully Connected² (FC) networks have connections going from every input to every output vector component, the particular structure tends to look at every image as a whole to make the decisions. How’s that a bad idea? Well, confirm yourself that when you look at an image of a cat, the position of the cat with respect to the rest of image doesn’t matter in our judgement whether it’s a cat. Likewise, making decisions with the overall image sound like an overkill (and computationally unattainable) to go anywhere with that approach..</p>
 
-<p>As we know, we have 3 targets to predict in this problem (each of which have several different sub-classes as shown below):</p>
+<blockquote class="blockquote" > when you look at an image of a cat, the position of the cat with respect to the rest of image doesn’t matter in our judgement whether it’s a cat.</blockquote>
 
-<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_classdist.png">
+<br><br>
 
-<p>Major Targets:</p>
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_cnn.png">
+<figcaption class="caption text-muted">An example of a CNN architecture³</figcaption>
+</figure>
 
+<p>A CNN is a variant of NN where we attempt to preserve the aforementioned spatial invariance of our targets (cat/dog/vowels/consonants). Inspired by the human visual cortex, we slide a series of filters on our image and each of these filter pick up on a particular feature from the image that doesn’t depend on the absolute position of the feature in the overall image. To make it more concrete, imagine one of these filter, pick up long horizontal strokes, while some pick on vertical ones. We can also stack up these filters, to say one just picks up broad strokes which it then passes to subsequent filters that classify if that’s a horizontal or a vertical one. There is a fantastic <a href="https://colah.github.io/posts/2014-07-Conv-Nets-Modular/">article</a> by Chris Olah where he explains CNN in much more details.</p>
+
+<h2 class="section-heading">Densely Connected CNN or just DenseNet⁴</h2>
+
+<p>Unfortunately, a plain vanilla CNN also does not fit the bill sometime, due to the sheer complexity of the classification job. Going back to the example of strokes, merely isolating them wouldn’t be much help since a unique letter is a combination of a lot of strokes in different shapes. One way of alleviating this problem, is to give each filter the capability of identifying strokes while keeping it cognizant of all the inputs that were received at the previous layers while it does its processing. Here is an image of how that might look.</p>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_densenet.png">
+<figcaption class="caption text-muted">A truly Dense Net architecture</figcaption>
+</figure>
+
+<p>As you can see, the red line are the connections from the previous layer, and every successive layer has knowledge of the input to its preceding layers.</p>
+
+<p>Due to hardware constraints of memory and computation power (we shall see later that these take a lot of memory due to the sheer no. of parameters involved), we cannot implement this in reasonable time-frame, even with the armament of GPU’s and compute times at Google or Facebook, let alone, a PC of a graduate student.</p>
+
+<p>In mid 2016, <a href="https://arxiv.org/abs/1608.06993">Gao and colleagues</a> came up with an architecture where instead of connecting the entire network, connectivity was done in chunks of layers (together called a Dense Block), which were connected to each other by a single convolutional layers and pooling layer⁵ (reason explained further down). At the end, we connect the output of the convolutional layers to dense output layers, which now just has to infer outputs from the convolutional layers response.</p>
+
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_densenet2.jpeg">
+<figcaption class="caption text-muted">A truly Dense Net architecture</figcaption>
+</figure>
+
+<h3 class="subsection-heading">Nuts and bolts of DenseNet</h3>
+
+<p>A single dense layer can be broken in to 2 blocks:</p>
+<p>
 <ul>
-<li>Grapheme Root: 168 subtypes (eg. দ্ব, ন, ল্ড, ক্ল, …)</li>
-<li>Vowel Diacritic: 11 subtypes ( eg. ◌া, ি◌, ◌ী, ◌ু , ◌ূ , ◌ৃ , ◌া, ◌ৗ )</li>
-<li>Consonant Diacritic: 7 subtypes (Null, ◌্য (য-ফলা), ◌্র (র-ফলা), র্ ( রফ), ◌ঁ , ◌র্্য ( রফ য-ফলা), ◌্র্য (র-ফলা য-ফলা))</li>
+<li> Convolutional Block: This is the work horse of DenseNet.
+It’s major parameter is a growth rate, which determines the no. of filters in each convolutional layer. It is called growth rate, since when we concatenate the inputs, input to each layers is bigger by the amount of growth rate times the number of preceding layers.</li>
+<li> Transition Block: Once we are at the output of a Dense Block, before it goes to the next layers, we pass it through another convolutional and pooling layer. This is so done because if you notice the output of each dense layer has a same size as that of the original input but since we have to downsample the next input as is standard in CNN architectures, we pass it through a (1x1) convolution layer and then an average pooling to achieve the desired dimensions.</li>
 </ul>
+</p>
 
-<h3 class="subsection-heading">Grapheme Root distribution</h3>
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_densenet3.png">
+<figcaption class="caption text-muted">DenseNet structure spread out⁶</figcaption>
+</figure>
 
-<p>Due to the large no. of possible class labels for the 167 unique grapheme roots, we chose to plot the top 10 and last 10 grapheme roots, based on the total number of images from the dataset in which the particular grapheme root appears.</p>
+<h3 class="subsection-heading">Does it work?</h3>
 
-<img class="img-big" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_top10.png" alt="Top and Bottom 10">
+<p>DenseNet have been in the limelight for its comparable results to more complicated architectures such as ResNet or InceptionNet while reducing the no. of parameters and hence training time drastically. It also shares similar advantages of the fancier architectures such as alleviating vanishing/exploding gradient problems, and strengthening feature propagation and reuse. Below is a comparison with ResNet.</p>
 
-<p> Here is the total distribution just for the big picture.</p>
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_improve.png">
+<figcaption class="caption text-muted">Comparison of accuracy between ResNets and DenseNets-BC (a variant DenseNet)</figcaption>
+</figure>
 
-<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_totdist.png" alt="Total Distribution">
+<p>Observe how at the same level of accuracy, both the # of parameter and # of FLOPS are ~2–3x lower than ResNet.</p>
 
-<p>Visually, the top 10 common grapheme roots are:</p>
+<p>It does suffer from the drawback that it takes a lot of memory while training since it has to keep track of all the preceding inputs inside the dense blocks.</p>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_top10_img.png" alt="Total Distribution" class="img-fluid">
+<h2 class="section-heading">Our Dense Net</h2>
+<h3 class="subsection-heading">Architecture</h3>
 
-<p> While the bottom 10 (or least popular) grapheme roots are:</p>
+<p>Coming back to the project at hand, here is our version of DenseNet (lovingly called SayanNet v4 :P )</p>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_bot10_img.png" alt="Total Distribution" class="img-fluid">
+<blockquote class="blockquote"> https://ibb.co/HGtkwWs: Schematic of SayanNet v4 (also shown at the very end. It is huge.).</blockquote>
 
-<h3 class="subsection-heading"> Vowel diacritics</h3>
+<p>However the basic structure is as follows:</p>
 
-<p>Likewise in case of vowels (pictures below)</p>
+<p>
+  <ul>
+    <li> Input Layer — Input the images as 64x64x1 (since all images are grayscale)</li>
+    <li> (Optional) Augmentation Layer. </li>
+    <li> 3 Dense Blocks — With 4 convolution layers each block, each convolutional layer having 12 filters. Followed by a transition block of average pooling layer (2x2 with strides of 2x2) for downsampling the output dimensions.</li>
+    <li> Global Average Pooling layer — To transform the final convolution layer output to a single vector </li>
+    <li> 3 Output Dense Layers — For each target. </li>
+    <li>Several Dropout⁷ and Batch Normalization between convolution layers to reduce over-fitting and ensure signal strength.</li>
+  </ul>
+</p>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_vowel_img.png" alt="Total Distribution" class="img-fluid">
+<p>
+  In total we have:
+  
+<br>
+Total parameters: 173,730<br>
+Trainable parameters: 170,802<br>
+Non-trainable parameters: 2,928
+</p>
 
-<p>The distribution is still pretty skewed.</p>
+<h3 class="subsection-heading">Other Hyperparameter</h3>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_voweldist.png" alt="Total Distribution" class="img-fluid">
-<span class="caption text-muted">sorry for the fonts :( however, you can follow the order from the photo above</span>
+<p>Optimizer — We used the Adam⁸ optimizer with a starting learning rate of 0.01</p>
 
-<h3 class="subsection-heading">Consonant diacritics</h3>
+<p>Loss function — Since each value is a label (with no numerical significance), we used the Sparse Categorical Cross-Entropy⁹ as out loss function for all outputs.</p>
 
-<p> The characters,</p>
+<p>Metrics — Although the competition webpage measure on a weighted Recall metric, we use Accuracy¹⁰ as our training metric</p>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_consonant_img.png" alt="Total Distribution" class="img-fluid">
+<p>Learning Rate — We used a variable learning rate, using TensorFlow’s native callback <code>ReduceLROnPlateau</code>¹¹ functionality on all 3 output losses. We started of with a learning rate of 0.01 and reduce by a factor of 0.2 each time the loss plateaus to a minimum of 0.0001.</p>
 
-<p> The distribution,</p>
+<h3 class="subsection-heading">Preliminary Results</h3>
+<p>As mentioned before and the previous article, since our training data is imbalanced, we used scikit-learns <code>train_test_split</code>¹² function to do a class stratified split of the entire data-set into 90% training an 10% validation.</p>
 
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_consonantdist.png" alt="Total Distribution" class="img-fluid">
-<span class="caption text-muted">sorry for the fonts :( however, you can follow the order from the photo above</span>
+<p>We trained the model with a batch size of 32 for a total of 100 epochs.</p>
 
-<p> Both the distribution of the vowels and the consonants suggest that most graphemes are complete without using any diacritic. Particularly there seems to be very few consonants diacritic in practice (than vowels). This is pretty intuitive though, since, by definition a grapheme is most likely a conjunction of two consonants, hence the need for a third consonant is rare. Vowels on the other hand are more likely to be associated with a consonant (or a combination of two consonants).</p>
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla2/bangla2_training.jpeg">
+<figcaption class="caption text-muted">From left to right: Vowel Accuracy, Root Accuracy, Consonant Accuracy (Red — Training, Blue — Validation)</figcaption>
+</figure>
 
-<p> Another major reason behind the imbalance of different targets and sub-classes might be ingrained within the nature of the bengali vocabulary. It is very natural for certain grapheme roots to be used more than certain esoteric ones, while some words (which are composed of graphemes ergo grapheme roots) are practically never used in colloquial parlance and some can only be found in ancient texts or used by logophilic authors.</p>
+<h2 class="section-heading">What's Next</h2>
 
-<p> Overall nothing surprising here, however, at this moment we are not sure how this would affect the training or whether this unbalance is something to be worried about. We’ll see.</p>
+<p>Since we achieved success with just the base model with arbitrary parameters, the next step is to tune the hyper-parameters of the model, for improved results. Another thing to study would be the change in accuracy after adding a couple of dense layers before the output.</p>
 
-<h2 class="section-heading">Image Preprocessing</h2>
+<p>It is also interesting to see the effect of image augmentation during training to further reduce over-fitting and improved accuracy.</p>
 
-<p>Here is a sample image from the data-set.</p>
-
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_sample.png" alt="Total Distribution" class="img-fluid">
-
-<p>As we can see, the handwritten raw images, have several issues:</p>
-
-<ul>
-<li>The opacity of the images are not uniform. Some are brighter (1 and 3) while some darker (4). Certain images are scans from a different lighting conditions and thus have a gradient of gray noise flowing across (2), while some are out of the page (5).</li>
-<li>The most common difference is the off-centering of the graphemes compared to the canvas.</li>
-<li>There is optical noise, coming from the scans.</li>
-</ul>
-
-
-<p>To alleviate these problems first-hand before sending the images to train, we use <code>OpenCV-python</code>⁴ to De-Noise -> Gray Scale -> Threshold -> Find text contours -> Resize the contoured image in a 64x64 square shape.</p>
-
-<ol>
-<li><p>Remove Noise⁵:
-Here we use the Non-local means denoising, which uses data from the overall image rather than gaussian/median techniques which look at a region close to the pixel of interest for removing noise.</p></li>
-<li><p>Grayscaling⁶:
-Since saving the image in a .png format introduces spurious channels (3 copies of the same data) from the original grayscale image, we convert it back into the original grayscale.</p></li>
-<li><p>Thresholding⁷:
-In this method, all pixel values below a certain critical value is dropped to 0, while all values higher is set to 255. To choose the critical value, we use Otsu’s method of binarization, where the threshold value for each image is selected based on the histogram of the image (assuming a bimodal distribution).</p></li>
-<li><p>Contouring and reshaping⁸:
-Once, all that is done, we use the contours (basically the area around the black text), put a bounding box around the main handwriting, cropping out the rest of the picture and then re-scaling it a 64x64 square.</p></li>
-</ol>
-
-
-<img src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla1/bangla1_beforeafter.png" alt="Total Distribution" class="img-fluid">
-
-<p>Above you can see a sample of the before and after of the images after pre-processing.</p>
-
-
-<h2 class="section-heading">Up Next ...</h2>
-
-<p>So far, we got our images ready for training. In the next few posts, we shall walk-through the following steps in the deep learning pipeline ahead.</p>e
-
-<ol>
-<li><p>Data Augmentation:
-A letter is still a letter with a bit of blur, it is the same even if it is rotated (not flipped BTW), and it is same even if it is written in terrible handwriting.
-We plan to use the Albumentation⁹ package in python to randomly add distortions to the training images while maintaining the same target labels. We expect that this should improve the learning process.</p></li>
-<li><p>Neural Network Architecture:
-Needless to say, we plan to employ a convolutional NN architecture. As of now, this is the brief blueprint of the natal architecture. This deserves to be a full-post by itself.</p></li>
-</ol>
-
-
-<p>See you next time…Stay tuned…</p>
-
+<p>In the next post, we shall discuss in detail the result of the tuned network and make some attempt as to understand what each layer/block is extracting the features of the images to achieve the final result.</p>
 
 <p><strong>All codes for the project can be found in this <a href="https://github.com/reach2sayan/Bengali-Grapheme_DATA2040">github</a> repository</strong></p>
 
-<p>Shout out to all the amazing people for uploading their notebooks. You guys guided us in the right direction.</p>
+<h2 class="section-heading">References</h2>
 
-<h2>References</h2>
-
+<p>
 <ol>
-<li><a href="https://cs.brown.edu/courses/info/data2040/">https://cs.brown.edu/courses/info/data2040/</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Bengali_language">https://en.wikipedia.org/wiki/Bengali_language</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Bangladesh">https://en.wikipedia.org/wiki/Bangladesh</a></li>
-<li><a href="https://opencv.org/">https://opencv.org/</a></li>
-<li><a href="https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_photo/py_non_local_means/py_non_local_means.html">https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_photo/py_non_local_means/py_non_local_means.html</a></li>
-<li><a href="https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_colorspaces/py_colorspaces.html">https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_colorspaces/py_colorspaces.html</a></li>
-<li><a href="https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html?highlight=thresholding">https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html?highlight=thresholding</a></li>
-<li><a href="https://docs.opencv.org/trunk/d4/d73/tutorial_py_contours_begin.html">https://docs.opencv.org/trunk/d4/d73/tutorial_py_contours_begin.html</a></li>
-<li><a href="https://github.com/albumentations-team/albumentations">https://github.com/albumentations-team/albumentations</a></li>
+<li><a href="https://news.mit.edu/2017/explained-neural-networks-deep-learning-0414">https://news.mit.edu/2017/explained-neural-networks-deep-learning-0414</a></li>
+<li><a href="https://towardsdatascience.com/under-the-hood-of-neural-networks-part-1-fully-connected-5223b7f78528">https://towardsdatascience.com/under-the-hood-of-neural-networks-part-1-fully-connected-5223b7f78528</a></li>
+<li><a href="https://towardsdatascience.com/understanding-convolution-neural-networks-the-eli5-way-785330cd1fb7">https://towardsdatascience.com/understanding-convolution-neural-networks-the-eli5-way-785330cd1fb7</a></li>
+<li><a href="https://towardsdatascience.com/densenet-2810936aeebb">https://towardsdatascience.com/densenet-2810936aeebb</a></li>
+<li><a href="https://machinelearningmastery.com/pooling-layers-for-convolutional-neural-networks/">https://machinelearningmastery.com/pooling-layers-for-convolutional-neural-networks/</a></li>
+<li><a href="https://machinelearningmastery.com/pooling-layers-for-convolutional-neural-networks/">https://machinelearningmastery.com/pooling-layers-for-convolutional-neural-networks/</a></li>
+<li><a href="https://machinelearningmastery.com/pooling-layers-for-convolutional-neural-networks/">https://medium.com/@amarbudhiraja/https-medium-com-amarbudhiraja-learning-less-to-learn-better-dropout-in-deep-machine-learning-74334da4bfc5</a></li>
+<li><a href="https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/Adam">https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/Adam</a></li>
+<li><a href="https://www.tensorflow.org/api_docs/python/tf/keras/losses/SparseCategoricalCrossentropy">https://www.tensorflow.org/api_docs/python/tf/keras/losses/SparseCategoricalCrossentropy</a></li>
+<li><a href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau">https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau</a></li>
+<li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html">https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html</a></li>
 </ol>
-
+</p>
