@@ -1,0 +1,134 @@
+---
+layout: post
+title: Bangla Character Recognition System — The Deep Learning way (3/3)
+subtitle: Convolutional Neural Networks for handwritten Bangla character recognition.
+date: 2020-03-07 23:45:13 -0400
+mathjax: true
+background: /img/posts/bangla3/bangla3_header.jpeg
+---
+
+<p>Hi there, this is the penultimate post for this series and probably the last one with me as the primary author. This series started as a part of the midterm project that Christina and I had been working for our hands-on deep learning class at Brown University, Data Science Initiative. The links for the first two parts are here:</p>
+
+<p>
+  <ul>
+    <li> <a href="https://reach2sayan.github.io/quantum_musings/2020/02/19/bangla1.html"> Bangla Character Recognition System — The Deep Learning Way (1/3) </a></li>
+    <li> <a href="https://reach2sayan.github.io/quantum_musings/2020/03/04/bangla2.html"> Bangla Character Recognition System — The Deep Learning Way (2/3)</a></li>
+</ul>
+</p>
+
+<p>The task at hand is the <a href="https://www.kaggle.com/c/bengaliai-cv19">Kaggle competition</a>, which involves classifying Bengali hand-written characters into 3 target classes — Grapheme roots, Vowel diacritics and Consonant diacritics.</p>
+
+<p>In the first post, we discussed the data-set, enumerating the different classes and the class balances. We also discussed the image pre-processing steps that were undertaken such as denoising, thresholding and cropping. We also talked about the possible data augmentation pipeline.</p>
+
+<p>In the second post, we discussed a bit about the general ideas of a convolution neural net and DenseNet, a particular convolution net based architecture where each layer takes as input the output of the previous layer but also the inputs of the preceding layers up to a certain extent (precisely all preceding convolution layers within the particular dense block).</p>
+
+<p>In this post, we shall primarily talk about the fine tuning of our candidate model (or SayanNet v4 as I call it to fuel my passive narcissism :P ). Following which we shall present the final result. We shall talk a bit about the output of different convolutional layers with respect to a particular image. As a closing note, we would suggest the different upgrades that could be made to the model for squeezing out the last bits of accuracy. Let’s get at it then.</p>
+
+<h2 class="section-heading">Hyperparameter Tuning</h2>
+
+<p>We chose to use TensorBoards HParams¹ dashboard for an exhaustive search through over a range of hyper-parameters. Due to the constraints of the project delivery deadline and computational resources, we had to keep to search space pretty narrow but at the same time there were a few interesting knobs to turn on.</p>
+
+<p>
+  <ol>
+    <li> No. of filters — We kept the no. of filters in each dense block fixed, but experimented with the number. This decides the no. of filters at the output of the dense block. We searched over <b>8</b>,<b>12</b>,<b>24</b> and <b>32</b> filters.</li>
+    <li>Growth rate — We also performed a search over the growth rate, that decide the no. of filters for each convolution layer within each dense block. Our search space was <b>4</b>,<b>6</b>,<b>12</b> and <b>16</b> filters.</li>
+    <li>Layers in a block — This parameter sets the no. of convolution layer within each dense block. In our case we tried <b>4</b> and <b>6</b> layers in a single block.</li>
+    <li>Dense block size — This is the no.of dense blocks in our model. Our search experimented between a block size of <b>3</b> and <b>5</b>.</li>
+  </ol>
+</p>
+
+<p>One of the primary reason for using HParams is the neat visualization provided by TensorBoard for analysis. Here is result of the 64 different scores from the 64 different combination of hyper-parameters. Again, due to computational and time constraints, these values were used on the full pre-processed data-set but for 10 epochs only.</p>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_hyperparam.png">
+</figure>
+
+<p>The green line indicates the best combination of hyper-parameters. For the purpose of our project, we settled on</p>
+
+<p>
+  <ul>
+    <li> Filters — 12</li>
+    <li> Growth rate — 12</li>
+    <li> Layers in a block — 6</li>
+    <li> Dense block size — This is the no.of dense blocks in our model. Our search experimented between a block size of 3 and 5.</li>
+  </ul>
+</p>
+
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_training.png">
+<figcaption class="caption text-muted">From Left to Right: Train and Validation accuracy and loss for Consonant, Root and Vowel respectively.
+</figcaption>
+</figure>
+
+<p>On the top you can see the new training curves. You can ignore the slight notch at around the ~55th time-step. Colab runtime got re-started and we had to resume training with a higher learning rate.</p>
+
+<p>On the top you can see the new training curves. You can ignore the slight notch at around the ~55th time-step. Colab runtime got re-started and we had to resume training with a higher learning rate.</p>
+
+<p>Here is the final entry into Kaggle.</p>
+
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_kaggle.png">
+</figure>
+
+<p>Each score is with a slightly different tweak to the model we described here. The predictions are roughly the same.</p>
+
+<p>The scores are not very encouraging if compared with the competition leaderboard. However, we ran out of time to perform any data augmentation. Perhaps, local normalization, as had been performed by AlexNet might boost accuracy. We also guess Transfer Learning from popular models such as VGGnet, ResNet, InceptionNet etc. with frozen pretrained layers would be an interesting examination (more on this in the next post). Our hyper-parameter search only skimmed the surface of the otherwise massive parameter space that define our model. Plus, who knows, maybe more compute, maybe a multi-model averaged prediction could be useful. The options to tweak are huge.</p>
+
+<h2 class="section-heading">Convolution Net Interpretation</h2>
+
+<p>We also plotted the different parts of a image (স্ট্রী) as viewed from the different filters of each convolution layer.</p>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_conv1.png">
+<figcaption class="caption text-muted">Convolution maps of the image per filter. This denotes the filters of the very first Convolutional block.
+</figcaption>
+</figure>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_conv2.png">
+<figcaption class="caption text-muted">A few layers down
+</figcaption>
+</figure>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_conv3.png">
+<figcaption class="caption text-muted">Further down
+</figcaption>
+</figure>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_conv4.png">
+<figcaption class="caption text-muted">Deeper Layers
+</figcaption>
+</figure>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/bangla3/bangla3_conv4.png">
+<figcaption class="caption text-muted">Layers towards the end
+</figcaption>
+</figure>
+
+<p>As you can see from the images, the top few layers kind of does a good job of beveling the image around the contours with different styles, and the deeper layers find finer differences also around the contours. A common thread in the first few layers is the network learns to extract the written part from the background canvas. As we go deeper, since the layers pick up on more general patterns, it gets difficult to interpret. But there is no doubt that some form of hierarchical feature mapping is going on.</p>
+
+<h2 class="section-heading">Ending Note</h2>
+
+<p>We will be calling it a wrap with this project here. Although Christina on her blog will be posting an epilogue where we shall discuss the performance of the other models from different better scoring models and the previously mentioned pretrained networks. I shall post the link here once that is done.</p>
+
+<p>In between the things which worked, there were 10 different things that didn’t work but the final result is a culmination of all those attempts. The learning curve was steep (with proper regularization :P), and it was great fun. Thank you all for taking the time to read this fledgling attempt. Shout out to the winners and everyone in the leaderboard, those guys did an amazing job. See you all in the next project.</p>
+
+<blockquote class="blockquote"> আবার দেখা হবে এখনই শেষ দেখা নয় <br>
+  আবার দেখা হবে এখনই শেষ কথা নয়</blockquote>
+
+<p>চীয়ার্স!</p>
+
+<p>সায়ন এবং ক্রিস্টিনা <br> Sayan and Christina</p>
+
+<p><strong>All codes for the project can be found in this <a href="https://github.com/reach2sayan/Bengali-Grapheme_DATA2040">github</a> repository</strong></p>
+
+<h2 class="section-heading">References</h2>
+
+<p>
+<ol>
+<li><a href="https://www.tensorflow.org/tensorboard/hyperparameter_tuning_with_hparams">https://www.tensorflow.org/tensorboard/hyperparameter_tuning_with_hparams</a></li>
+</ol>
+</p>
