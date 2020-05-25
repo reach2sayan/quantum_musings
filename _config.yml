@@ -17,6 +17,7 @@ linkedin_username:
 # Build settings
 markdown:           kramdown
 paginate:           5
+highlighter: 	    rouge
 paginate_path:      "/posts/page:num/"
 plugins:
   - jekyll-feed
