@@ -1,0 +1,157 @@
+---
+layout: post
+title: Conditional Text Generator using Neural NLP (2/3)
+subtitle: An investigation of GPT-2, PPLM and CTRL for automatic text generation conditioned on sentiment and/or text.
+date: 2020-05-14 23:45:13 -0400
+mathjax: true
+background: /img/posts/condtext2/condtext2_header.jpg
+---
+
+<p>In the <a href="https://reach2sayan.github.io/quantum_musings/2020/05/11/condtextgen1.html">previous post</a> we gave a briefly mentioned the models that we would try and described the dataset on which we shal test of finetuned results.</p>
+
+<p>In this post, we shall discuss the finetuning of a GPT-2 model for conditional keyword generation.</p>
+
+<p><a href="https://openai.com/blog/better-language-models/">GPT-2</a>, the successor to <a href="https://openai.com/blog/language-unsupervised/">GPT</a> is a <a href="https://arxiv.org/abs/1706.03762">transformer</a> -based language model developed by OpenAI. While it was designed to predict the next word based on the previous words in a text, it has been shown to be capable of producing convincing synthetic texts that garnered a ‘credibility score’ of 6.91/10 (actually 6.07 in the model we used, but more on that in a bit) as evaluated by a survey at Cornell University.</p>
+
+<p>The original model (with 1.5 billion parameters) was trained on a dataset of roughly 8 million text-documents from the internet and is curated to have the diversity that represent the naturally occurring diversity over multiple domains. Initially, there was a concern that the original model could be misused for generating synthetic texts catered towards synthetic propaganda. When it was released, the concern died due to lack of evidence of such exploitations. However, due to constraints (primarily computation but not limited to), we use a smaller model with 124 million parameters$^1$.</p>
+
+<p>It is unwieldy to discuss the general transformer architecture here (great lecture here) , and also you cannot modify the GPT-2 architecture and hence for the purpose of this post, we shall take it as a black box. Since the original GPT-2 did not have any protocol to finetune the model, Neil Sheppard$^2$ and then Max Woolf$^3$ forked the existing model to create a finetune and generate pipline which we have used in this project.</p>
+
+<h2 class="section-heading">Controlled Generation</h2>
+
+<p>Let us address two limitations of the original GPT-2 model:</p>
+
+<p>
+  <ol>
+    <li>It was originally designed to generate long-form text until it reaches the prescribed length. Therefore, it is not suitable to generated shorter text (like a quick review).</li>
+    <li>With the exception of the starting cue, the generation was uncontrolled, meaning there is no way to enforce the presence of a keyword or context in the generated text.</li>
+  </ol>
+</p>
+
+<p>The first drawback is addressed by introducing a  &lt|startoftext| &gt and &lt|endoftext|&gt token at the beginning and end for each instance of the dataset and then instructing the model to terminate the generation once that particular token has been generated. This introduction of start and end token, along with the length of the text, is capable of producing shot-form complete texts.</p>
+
+<p>The second limitation (which is also the crux of our project) is addressed in a similar fashion, by appending additional tokens as `[coarse conditioning]^[fine conditioning] (`, ^ as the delimiters) to each instance of the dataset.</p>
+
+<p>We obtain the keyord following the procedure in the previous post, Then we convert the the dataset into a <code>.txt</code> file and feed it to the finetuning code.</p>
+
+<h3 class="subsection-heading">Finetuning the model (and generation)</h3>
+
+<p>Once we have the keyword in the required format, we can proceed to finetuning by running the code</p>
+
+{% highlight python  %}
+sess = gpt2.start_tf_sess()
+gpt2.finetune(sess,
+              dataset=filename,
+              model_name='124M',
+              steps=100,
+              restore_from='latest',
+              run_name='run1',
+              print_every=100,
+              sample_every=100,
+              save_every=100,
+              overwrite=True
+              )		
+{% endhighlight %}		
+
+<p>All finetuned model checkpoints are stored in <code>run_name</code>, and the model saves a new checkpoint every <code>save_every</code>, samples from the most recent weights sample_every steps and prints to screen <code>print_every</code> steps. Different <code>run_name</code> can be used to experiment with different sets of keywords and/or datasets. Also one can resume a halted training process either from different checkpoints or the latest one as mentioned in the <code>restore_from</code> parameter.</p>
+
+<p>Here are some snippets of the training process,</p>
+
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/condtext2/condtext2_early.png">
+<figcaption class="caption text-muted">Beginning of training
+</figcaption>
+</figure>
+
+<p>As you can see, the samples are mostly 5 star ratings (due to the inherent data imbalance), however towards the end,</p>
+
+<figure>
+<img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/condtext2/condtext2_end.png">
+<figcaption class="caption text-muted">End of training
+</figcaption>
+</figure>
+
+<p>the loss is lower (remember that we are finetuning, so not much is expected), and now since the model has see a lot more 3’s and 4’s, the generation is more robust. A thing to note here, is that if you do not have a large dataset to finetune, the model may end up overfitting and hence it us advisable to keep finetuning epochs to a minimum (like 1-10). Or stop the process once the change in loss plateaus.</p>
+
+<p>At the end of the finetuning, you can generate samples from the finetuned model, by running</p>
+
+{% highlight python  %}
+sess = gpt2.start_tf_sess()
+gpt2.load_gpt2(sess)
+gpt2.generate(sess,
+              temperature=0.7,
+              top_k=40,
+              nsamples=5,
+              batch_size=1,
+              length=200,
+              prefix="<|startoftext|>~`3~^Belt ~@",
+              truncate="<|endoftext|>",
+              include_prefix=False,
+              sample_delim=''
+              )
+{% endhighlight %}		
+
+<p>For this, we can use both top k sampling as well as top p (nuclues sampling), whatever works better for dataset of interest. We could also play with the temperature parameter to play with the creativity/sensibility (a variant of the bias/variance) trade-off.</p>
+
+<p>Please note the naiveity in this approach, which can best understand what's going on by considering the following scenario:</p>
+
+<blockquote class="blockquote">
+Real life:<br>
+<b>Professor to Student:</b> <em>This project is an absolute garbage.</em><br>
+<br>
+<em>(this clearly is a negative sentiment say 1.0 and the keyword is project)</em>
+<br><br>
+Finetuned GPT-2 life:<br>
+<b>Professor to Student:</b><em>&lt|startoftext|&gt`1.0^project~@This project is an absolute garbage.</em>
+</blockquote>
+
+<p>What is really happening is that we are training the model (falsely) to believe that normal text, is always spoken such that you declare your sentiment and keywords before saying the sentence out.</p>
+
+<p>So then we can leverage GPT-2's starting prompt ability to condition the generating apriori by adding the keyword to the starting prompt.</p>
+
+<h2 class="section-heading">Generated Samples</h2>
+
+<p><b>Rating:</b> 1, <b>Keyword:</b> Belt
+
+<p><em>Very thin fabric. Material is super thin. Not much give in the waist. The belt is pretty thin. I am a size 6-8, and the 6-8 fit me perfectly. I wear a size 7 dress, but the 6-8 was too tight and the length was too short for me. I was really disappointed with the purchase.</em></p>
+
+<p><b>Rating:</b> 3, <b>Keyword:</b> Belt
+
+<p><em> purchased a belt with a buckle, which I thought was a nice addition. Unfortunately, the buckle broke. I had to glue it back together. If you have a small wrist, you might be able to use it, but if you have a larger wrist, you might not be able to use it.</em></p>
+
+<p><b>Rating:</b> 5, <b>Keyword:</b> Belt
+
+<p><em>Belt fit perfectly. Very happy with this purchase. Very comfortable. The fit is perfect.</em></p>
+
+<hr>
+
+<p><b>Rating:</b> 1, <b>Keyword:</b> Boot
+
+<p><em>Boots are very heavy and have no traction on the bottom of the foot. The soles are thin and hard, they are not able to hold up to the very high price. I have ordered two different sizes for my son and they have the same problem. He can not wear them. We cannot find ones that have the sole.</em></p>
+
+<p><b>Rating:</b> 3, <b>Keyword:</b> Boot
+
+<p><em> Comfortable. But the leather has a different color to it, and I know that the black will fade, so I am not sure if the leather is the same color. I do not know if this was the only issue.</em></p>
+
+<p><b>Rating:</b> 5, <b>Keyword:</b> Boot
+
+<p><em>Nice boots and very comfortable. The color is very nice and the fit is very flattering.</em></p>
+
+<h2 class="section-heading">Next Up</h2>
+
+<p>The approach here is naive in the sense that there is no mathematical basis behind the generation except the obvious biasing of the text. The examples above were cherry picked and roughly every 1 out of 5 generated text is an interesting one. The dataset was also unbalanced towards more 5 star rating and directly affects the quality of the generation by creating sampling bias. Finally, the delimiters of the coarse and fine conditioning keywords were chosen based on relatively rarely used ASCII characters, still one can be disciplined about it by incorporating the base delimiters of GPT-2$^{4,5}$.</p>
+
+<p>As our next step, we shall attempt to decouple the types of conditioning by investigating two other conditional language model - <a href="https://github.com/uber-research/PPLM">PPLM</a> and <a href="https://github.com/salesforce/ctrl">CTRL</a>, where the former would be used to generate rating based reviews solely and the latter would be used for generating text pertaining to a broad category - for eg. reviews specific to clothing or to amazon prime videos. Depending on the quality of text generated by the two models, we shall zero-in on our final model.</p>
+
+
+<h2 class="section-heading">References</h2>
+
+<p>
+  <ol>
+    <li><a href="https://openai.com/blog/gpt-2-1-5b-release/">https://openai.com/blog/gpt-2-1-5b-release/</a></li>
+    <li><a href="https://github.com/nshepperd/gpt-2">https://github.com/nshepperd/gpt-2</a></li>
+    <li><a href="https://github.com/minimaxir/gpt-2-simple">https://github.com/minimaxir/gpt-2-simple</a></li>
+    <li><a href="https://www.wired.com/2013/08/the-rarity-of-the-ampersand/">https://www.wired.com/2013/08/the-rarity-of-the-ampersand/</a></li>
+    <li><a href="https://stackoverflow.com/questions/492090/least-used-delimiter-character-in-normal-text-ascii-128">https://stackoverflow.com/questions/492090/least-used-delimiter-character-in-normal-text-ascii-128</a></li>
+</ol>
+</p>

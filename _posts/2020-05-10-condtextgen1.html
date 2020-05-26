@@ -23,7 +23,7 @@ background: /img/posts/condtext1/condtext1_header.jpg
 
 $$
 \begin{equation*}
-p(x) = \prod_{i=1}^n p(x|x_{< i})
+p(x) = \prod_{i=1}^n p(x|x_{&lt i})
 \end{equation*}
 $$
 
@@ -33,7 +33,7 @@ $$
 
 $$
 \begin{equation*}
-\mathcal{L} =  -\sum_{k=1}^{n}\log p_\theta(x_i^k|x_{j i }^k) 
+\mathcal{L} =  -\sum_{k=1}^{n}\log p_\theta(x_i^k|x_{&lt i}^k) 
 \end{equation*}
 $$
 
@@ -43,8 +43,8 @@ $$
 
 $$
 \begin{align*}
-p(x) &= \prod_{i=1}^n p(x|x_{i},c)\\
-\mathcal{L} &=  -\sum_{k=1}^{n}\log p_\theta(x_i^k|x_{i}^k,c) 
+p(x) &= \prod_{i=1}^n p(x|x_{&lt i},c)\\
+\mathcal{L} &=  -\sum_{k=1}^{n}\log p_\theta(x_i^k|x_{&lt i}^k,c) 
 \end{align*}
 $$
 
@@ -71,7 +71,7 @@ $$
 "summary": "Comfy, flattering, discreet--highly recommended!", 
 "unixReviewTime": 1514764800
 }							
-{% endhighlight %}					
+{% endhighlight %}
 
 <h3 class="subsection-heading">Preprocessing</h3>
 
@@ -84,6 +84,16 @@ $$
 <p>It is to be noted that while spaces and punctuations are normalized to dashes, the keywords are not case normalized for a richer experience.</p>
 
 <p>Since the dataset is massive, we use <a href="https://github.com/ray-project/ray">Ray</a> to override the python GIL and leverage all CPU cores to expedite the process.</p>
+
+<p>The code to generate keyword and then append them to the dataset can be done by running </p>
+
+{% highlight python  %}
+encode_keywords(csv_path='/content/drive/My Drive/text-review-generation-data2040/data/Clothing_Shoes_and_Jewelry_5.tsv',
+                out_path='/content/drive/My Drive/text-review-generation-data2040/data/Clothing_Shoes_and_Jewelry_5_encoded.txt',
+                category_field='rating',
+                title_field='text',
+                keyword_gen='text') 					
+{% endhighlight %}
 
 <h3 class="subsection-heading">Interesting Trends</h3>
 
@@ -114,7 +124,7 @@ $$
 
 <p>We have that the most frequently used bigrams are a combination of verb and adjective that denotes the quality of the product and how well the product fits to the customer. We have that most bigrams denote positive remarks about the product. Similarly, the most frequently used words are positive adjectives.</p>
 
-<h4 class="subsection-review">Word Cloud by Ratings</h4>
+<h4 class="subsection-heading">Word Cloud by Ratings</h4>
 
 <p>Next, using WordCloud library, we looked at the wordcloud of the reviews. First, we plotted the wordcloud of all the reviews, and then we plotted the wordclouds by ratings (rating = 1, rating = 5) to see whether there is a difference in the use of words in the review texts by ratings. We removed the stopwards and plotted the wordcloud accordingly.</p>
 
