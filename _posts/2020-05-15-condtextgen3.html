@@ -1,0 +1,111 @@
+---
+layout: post
+title: Conditional Text Generator using Neural NLP (3/3)
+subtitle: An investigation of GPT-2, PPLM and CTRL for automatic text generation conditioned on sentiment and/or text.
+date: 2020-05-15 23:45:13 -0400
+mathjax: true
+background: /img/posts/condtext3/condtext3_header.jpg
+---
+
+<p>With all the strength of the <a href="https://reach2sayan.github.io/quantum_musings/2020/05/15/condtextgen2.html">finetuned GPT-2 model</a>, the most state of the art model is far too large and inaccessible to implement and re-train to the particular specifications of a new task. In order to create reviews that work particularly well with respect to generating a particular sentiment, we decided to take the next step and build on GPT-2 using Uber’s <a href="https://eng.uber.com/pplm/">PPLM algorithm</a>.</p>
+
+<p>PPLM, short for Plug and Play Language Model, is a model developed to steer and control successful language models to complete more specified tasks, such as discussing a particular topic or containing a specific sentiment (positive or negative). For example, while GPT-2 is fantastic at encoding information about speech patterns, grammar, and spelling, we would be unable to force GPT-2 to generate a positive sentence given a negative starting text, such as <em>“the food is awful”</em>. Instead, PPLM is able to build on top of GPT-2 in order to create a positive conclusion to a negative sentence, such as: <em>“The food is awful, but there is also the music, the story and the magic! The “Avenged Sevenfold” is a masterfully performed rock musical that will have a strong presence all over the world.”</em></p>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/condtext3/condtext3_pplm_cartoon.png">
+<figcaption class="caption text-muted">PPLM - Steering the Mammoth
+</figcaption>
+</figure>
+
+<p>PPLM allows us to have flexibility in choosing simple attribute models that represent what we want to control, and plug it into a large, unconditional language model. What makes PPLM so special is that there is no training or fine-tuning required of the large language model — this allows users to utilize the top of the line language models available, even if they do not have the resources to required to train them. The largest and most successful publicly available language models contain up to a billion parameters, take unfathomable amounts of money and resources to train, and often do not provide the training data publicly. On the other hand, these plug-in attribute models may be many orders of magnitude smaller in size. Uber uses the metaphor that these huge language models are like a wooly mammoth that lumbers around aimlessly, and the plug-in attribute model acts as a tiny mouse that sits on the mammoth and guides it.</p>
+
+<p>We specifically implemented PPLM-Discrim, where the plug in attribute model on top of GPT-2 is a single layer discriminator with the sole purpose of discriminating between positive and negative sentiments. In other words, this discriminator layer takes the mean of the embedded representation output from the original GPT-2 model and predicts the final output label of rating. In this particular scenario, that is encoded by the ratings associated with the reviews, ranging from most negative at 1, and most positive at 5.</p>
+
+<figure>
+<img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/condtext3/condtext3_pplm_schematic.png">
+<figcaption class="caption text-muted">PPLM Schematic
+</figcaption>
+</figure>
+
+<h2 class="section-heading">Results of PPLM-Discrim</h2>
+
+<p>After training, we could now use the PPLM source code to run an example based on the pretrained GPT-2 model and our trained sentiment rating discriminator. Below is an example of the code that we run to generate the review text. In terms of hyperparameter tuning, there were two that we had to adjust in order to produce the desired results. Firstly, the parameter <code>stepsize</code> is used to specify the degree of topic control. The higher we increase <code>stepsize</code>, the more topic control is intensified, whereas the lower it is, the softer the topic control. Secondly, we input parameter <code>class_label</code> in order to specify which sentiment we want for our review text output, corresponding to the “rating” label from the data.</p>
+
+{% highlight python  %}
+run_pplm_example(cond_text='This food',
+                 pretrained_model='gpt2',
+                 discrim_weights='generic_classifier_head_epoch_1.pt',
+                 discrim_meta='generic_classifier_head_meta.json',
+                 discrim='generic',
+                 class_label='1', length=50,
+                 stepsize=0.90,
+                 sample=True, num_iterations=1,
+                 gamma=1, gm_scale=0.9,
+                 kl_scale=0.02,
+                 verbosity='quiet')
+{% endhighlight %}
+
+<h3 class="subsection-heading">Example Reviews for Different Sentiments</h3>
+
+<p>Here is a hand-picked example of the review data. We show this as our result as this type of qualitative, human judgment on the text data is the best way to evaluate it’s effectiveness, as ultimately we desire our reviews to be able to convince a human that another human wrote them. With the initial start of sentence text as:<br>
+  <code>= Prefix of sentence = <|endoftext|>This food</code></p>
+
+<p>The baseline review output from the <b>pretrained GPT-2</b> model before any sentiment control was:</p>
+
+<p><code>= Unperturbed generated text = <|endoftext|>This food is delicious! It tastes like real chicken, but has an amazing flavor! It's so good that I don't even have to eat it in a restaurant. It tastes like rice and the texture is so delicious! It's also a great option to</code></p>
+
+<p>The review text output corresponding to a <b>rating label of 1</b> is:</p>
+
+<p><code>= Perturbed generated text = <|endoftext|>This food-safety inspector warned this year that the industry warned of health hazards of the tainted rice paste. The rice paste paste made by B.C. rice producer Bao Dong was used in a fatal accident in Surrey, B.C.,</code></p>
+
+<p>The review text output corresponding to a <b>rating label of 3</b> is:</p>
+
+<p><code>= Perturbed generated text 2 = <|endoftext|>This food safety report found a "significant increase" in food safety concerns. The report will be considered in the House committee hearing on the committee's report at 3:30pm on Friday, June 8.</code></p>
+
+<p>The review text output corresponding to a <b>rating label of 5</b> is:</p>
+
+<p><code>= Perturbed generated text 3 = <|endoftext|>This food is fantastic as a great breakfast, an easy meal, and will keep you full for up to 3 weeks. I've also found this recipe makes very tasty meals for 2 weeks or more after eating without refrigeration. It's delicious and nutritious too.</code></p>
+
+<p>From multiple different trials with a variety of starting sentence tokens, we were excited to find that we would consistently see clearly negative sentiment associated with class labels of 1, and see clearly positive sentiment associated with class labels of 5. We did notice that our PPLM-Discrim model did have an easier to producing accurate class 5 reviews, but sometimes would produce more positive reviews even for lower rated classes. This likely is because of the class imbalance of the data. This could be solved by taking a stratified sample of the data so that all classes are equally represented in the training data. Looking at example of class label 3 text was interesting, because it is relatively hard for humans to specify exactly what “neutral” text is.</p>
+
+<h3 class="subsection-heading">Rating 3 Texts Gave Interesting Neutral Results</h3>
+
+<p>A lot of class 3 text came out to be neutral in the sense that the text discussed things like inherent properties or details of the subject, like the size specifications of a piece of clothing, or it discussed the scientific compositions and names of the chemicals related to the subject. For example:</p>
+
+<p><code>= Perturbed generated text 1 = <|endoftext|>Potato chips are usually boiled in water in boiling water in an orange coloration apparatus (a color of food coloring oil or vegetable oil). The color of the coloring of potato chips are usually orange or brown depending upon whether their colors are yellow, purple or yellowish.</code></p>
+
+<p><code>= Perturbed generated text 2 = <|endoftext|>These shoes are made of polypropylylyleyl acetate (PPAR) and polypropylene poly polyethylene polypropyl acetate (PUPA). The sole was then hand washed with polyethylene.</code></p>
+
+<h3 class="subsection-heading">Controlling Sentiment</h3>
+
+<p>Furthermore, we can confirm that we have a higher capability of controlling the sentiment outcome of the sentence, even if we provide the model with a start of sentence with the opposite sentiment. For example, for the input:</p>
+
+<p><code>= Prefix of sentence = <|endoftext|>This dress is tight</code></p>
+
+<p>We get the review text output corresponding to a rating label of 5:</p>
+
+<p><code>= Perturbed generated text = <|endoftext|>This dress is tight, but flattering and cozy, and flattering. This dress is perfect for weddings or other events that require a little attention to detail.</code></p>
+
+<p>On the other hand, we can give the model a positive sentiment start of sentence and ask for a rating label of 1 text. For the input:</p>
+
+<p><code>= Prefix of sentence = <|endoftext|>The shirt is nice</code></p>
+
+<p>We get the review text output:</p>
+
+<p><code>= Perturbed generated text = <|endoftext|>The shirt is nice, but it does not have a collar or a small picture of the logo on the back. I am not sure what is on the back. It looks too expensive shirt and the sleeves are too thin but my boyfriend and the mother who owns it looks awesome.</code></p>
+
+<h2 class="section-heading">Future work and CTRL</h2>
+
+Finally, we have now been able to generate text reviews based on a keyword topic, and based on a particular sentiment. Next we shall briefly explore another model that is trained to condition on a “control code” that specifies the domain, entities, and relationships between entities in the generated text. Control codes can derived from structure that naturally occurs in raw text (eg. Reviews, Links etc.. We attempt to do this using Salesforce’s CTRL algorithm.
+
+<h2 class="section-heading">References</h2>
+
+<p>
+  <ol>
+    <li><a href="https://openai.com/blog/gpt-2-1-5b-release/">https://openai.com/blog/gpt-2-1-5b-release/</a></li>
+    <li><a href="https://github.com/nshepperd/gpt-2">https://github.com/nshepperd/gpt-2</a></li>
+    <li><a href="https://github.com/minimaxir/gpt-2-simple">https://github.com/minimaxir/gpt-2-simple</a></li>
+    <li><a href="https://www.wired.com/2013/08/the-rarity-of-the-ampersand/">https://www.wired.com/2013/08/the-rarity-of-the-ampersand/</a></li>
+    <li><a href="https://stackoverflow.com/questions/492090/least-used-delimiter-character-in-normal-text-ascii-128">https://stackoverflow.com/questions/492090/least-used-delimiter-character-in-normal-text-ascii-128</a></li>
+</ol>
+</p>
