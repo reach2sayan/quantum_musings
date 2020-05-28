@@ -1,13 +1,17 @@
 # Degree
-- degree: Bachelor of Arts, Human Rights
-  uni: Yale University
-  year: 2004 &mdash; 2008
+- degree: Doctorate in Philosophy, Engineering
+  uni: Brown University, RI, USA.
+  year: 2016 &dash; ongoing
+  summary: Working on computer calculation of phase diagrams and generation of atomic potentials under Dr. Axel Van De Walle. 
+  
+- degree: Master of Technology, Materials Science
+  uni: Indian Institute of Technology, Bombay, India.
+  year: 2014 &dash; 2016
   awards:
-    - award: Summa Cumme Laude graduate
-  summary: If you had any meaningful roles at college, feel free to write about them here
-
-- degree: High School Diploma
-  uni: Springfield High School
-  year: 2004
-  award: Most likely to succeed
-  summary: You can choose to have either a single or multiple awards
+    - award: Honours with distinction
+    
+- degree: Bachelor of Technology, Metallurgical Engg. and Materials Science
+  uni: National Institute of Technology, Durgapur, India.
+  year: 2010 &dash; 2014
+  awards:
+    - award: Honours with distinction

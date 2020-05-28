@@ -1,16 +1,23 @@
 # Projects
 # uncomment the urls if you wish to display them, and add your own URL
 
-# jazznotes.io
-- project: jazznotes.io
-  role: Founder & Primary Developer
-  duration: 2012 &mdash; Present
-  # url: "#"
-  description: Jazz Notes is an open source node/ember app that helps you keep track of your music compositions and new ideas.
+# Bengali Character Recognition with Deep Learning
+- project: Bengali Character Recognition with Deep Learning
+  #role: #
+  duration: Spring 2020
+  url: "https://reach2sayan.github.io/quantum_musings/2020/02/19/bangla1.html" 
+  description: Implemented a DenseNet architecture and trained from scratch with data augmentation and hyperparameter tuning to recognize handwritten bengali characters. Secured an accuracy of 92% with 1 GPU and 100 epochs of training.
 
-# Springfield Community Outreach Group
-- project: Springfield Community Outreach Group
-  role: Co-Founder & Organizer
-  duration: 2007 &mdash; Present
+# Conditional Text Generator using Neural NLP
+- project: Conditional Text Generator using Neural NLP
+  # role: 
+  duration: Spring 2020
+  url: "https://reach2sayan.github.io/quantum_musings/2020/05/11/condtextgen1.html"
+  description: Fine-tuned a GPT-2 language model to generate Amazon reviews like text conditioned on keyword and rating. Also fine-tuned a PPLM model for better sentiment control.
+
+# Computer Calculation of Ir-Ru Phase diagram
+- project: Computer calculation of binary Iridium-Ruthenium phase diagram
+  # role: 
+  duration: 2018 &mdash; present
   # url: "#"
-  description: SCOG is a local monthly meetup in Springfield where we share opportunities to volunteer in the community and organize support for families and neighborhoods in need of assistance that the community can provide.
+  description: Calculated from 1st principles, the phase diagram for a Iridium-Ruthenium binary  alloy using <code>sqs2tdb</code>

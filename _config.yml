@@ -37,9 +37,11 @@ resume_contact_telephone:       "+1 (401) 699-1340"
 resume_contact_address:         "11 Alumni Avenue, Apt. 23, Providence, RI - 02906"
 
 resume_header_contact_info:     "11 Alumni Avenue, RI - 02906 • (401) 699-1340 • reach2sayan@gmail.com"
-display_header_contact_info:    "true"
+display_header_contact_info:    "false"
 
-resume_header_intro: "<p>This is the executive summary. You should write a few brief, concise, and meaningful sentences about yourself from a professional context, and your immediate career goals. Make the length appropriate for your needs, but keep it brief and concise</p>"
+resume_header_intro: "<p>My research interest lies in applying Data Science and Machine Learning techniques to the field of Ab-Initio Computational Materials Science. Currently in my 4th year of PhD program also pursuing a Doctoral Certification in Data Science.
+<br><br>
+<b>Tools:</b> TensorFlow, PyTorch, VASP, ATAT, Python, C++</p>"
 
 # use "yes" to display the email contact button,
 # "no" to display an "I'm not looking for work" message,
@@ -49,14 +51,16 @@ resume_header_intro: "<p>This is the executive summary. You should write a few b
 
 # Decide which sections to use
 # comment out to hide
-resume_section_experience:      true
 resume_section_education:       true
 resume_section_projects:        true
-resume_section_skills:          true
-resume_section_recognition:     true
-resume_section_links:           true
-resume_section_associations:    true
-# resume_section_interests:       true
+resume_section_experience:      true
+#resume_section_skills:          true
+#resume_section_recognition:     true
+#resume_section_links:           true
+#resume_section_associations:    true
+#Fresume_section_interests:       true
+resume_section_publications:    true
+resume_section_confandshops:    true
 
 # Resume social links
 # uncomment the options you wish to display, and add your own URL
@@ -69,7 +73,7 @@ resume_social_links:
   # resume_instagram_url:         "insert your Instagram URL here"
   # resume_website_url:           "http://joelglovier.com"
   # resume_medium_url:            "https://medium.com/@jglovier"
-resume_print_social_links:      false
+#resume_print_social_links:      false
 
 # Design settings
 resume_theme:                   default

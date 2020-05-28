@@ -70,27 +70,6 @@ layout: default
 
       </header>
 
-      {% if site.resume_section_experience %}
-      <!-- begin Experience -->
-      <section class="content-section">
-
-        <header class="section-header">
-          <h2>Experience</h2>
-        </header>
-
-        {% for job in site.data.experience %}
-        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
-          <h3 class="resume-item-title" itemprop="name">{{ job.company }}</h3>
-          <h4 class="resume-item-details" itemprop="description">{{ job.position }} &bull; {{ job.duration }}</h4>
-          <p class="resume-item-copy">{{ job.summary }}</p>
-        </div><!-- end of resume-item -->
-        {% endfor %}
-
-      </section>
-      <!-- end Experience -->
-      {% endif %}
-
-
       {% if site.resume_section_education %}
       <!-- begin Education -->
       <section class="content-section">
@@ -130,13 +109,52 @@ layout: default
         <div class="resume-item" itemscope itemtype="http://schema.org/CreativeWork">
           <meta itemprop="creator" content="{{ site.resume_name }}" itemtype="http://schema.org/Person" />
           <h3 class="resume-item-title" itemprop="name">{% if project.url %}<a href="{{ project.url }}" itemprop="url">{{ project.project }}</a>{% else %}{{ project.project }}{% endif %}</h3>
-          <h4 class="resume-item-details" itemprop="description">{{ project.role }}  &bull; {{ project.duration }}</h4>
+          <h4 class="resume-item-details" itemprop="description">{{ project.role }}{{ project.duration }}</h4>
           <p class="resume-item-copy">{{ project.description }}</p>
         </div>
         {% endfor %}
 
       </section>
       <!-- end Projects -->
+      {% endif %}
+
+      {% if site.resume_section_publications %}
+      <!-- begin Publications  -->
+      <section class="content-section">
+
+        <header class="section-header">
+          <h2>Publication</h2>
+        </header>
+        {% for publication in site.data.publications %}
+        <div class="resume-item">
+          <!-- <h4 class="resume-item-details">{{ publication.title }}</h4> -->
+          <p class="resume-item-copy">{{ publication.description }}</p>
+        </div>
+        {% endfor %}
+
+      </section>
+      <!-- end Publications -->
+      {% endif %}
+      
+      {% if site.resume_section_confandshops %}
+      <!-- begin Experience -->
+      <section class="content-section">
+
+        <header class="section-header">
+          <h2>Conference and Workshops</h2>
+        </header>
+
+        {% for job in site.data.confshop %}
+        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
+          <h3 class="resume-item-title" itemprop="name">{{ job.company }}</h3>
+          <h4 class="resume-item-details" itemprop="description">{{ job.date }}</h4>
+          <h4 class="resume-item-author" itemprop="description">{{ job.authors }}</h4>
+          <p class="resume-item-copy">{{ job.description }}</p>
+        </div><!-- end of resume-item -->
+        {% endfor %}
+
+      </section>
+      <!-- end Experience -->
       {% endif %}
 
       {% if site.resume_section_skills %}
@@ -155,6 +173,26 @@ layout: default
 
       </section>
       <!-- end Skills -->
+      {% endif %}
+      
+      {% if site.resume_section_experience %}
+      <!-- begin Experience -->
+      <section class="content-section">
+
+        <header class="section-header">
+          <h2>Experience</h2>
+        </header>
+
+        {% for job in site.data.experience %}
+        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
+          <h3 class="resume-item-title" itemprop="name">{{ job.company }}</h3>
+          <h4 class="resume-item-details" itemprop="description">{{ job.position }} &bull; {{ job.duration }}</h4>
+          <p class="resume-item-copy">{{ job.summary }}</p>
+        </div><!-- end of resume-item -->
+        {% endfor %}
+
+      </section>
+      <!-- end Experience -->
       {% endif %}
 
       {% if site.resume_section_recognition %}
@@ -253,10 +291,10 @@ layout: default
       <!-- end Print Social Links -->
       {% endif %}
 
-      <footer class="page-footer">
+      <!-- <footer class="page-footer">
         <p class="footer-line">Made by <a href="http://twitter.com/jglovier">@jglovier</a>. Fork me on <a href="https://github.com/jglovier/resume-template">GitHub</a>.</p>
         <p class="footer-line">If this is your live resume, you can modify or remove this part. ;-)</p>
-      </footer>
+      </footer> -->
 
     </div>
     </div>
