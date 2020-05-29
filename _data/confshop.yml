@@ -1,17 +1,21 @@
 # Jobs
+
+- company: Hume&dash;Rothery Symposium &mdash; Bulk and Interfacial Thermodynamics of Complex Materials&#58; Insights Derived from Integrating Modeling and Experiment
+  date: March 10 &mdash; 14th, 2013
+  description: Interfacing ab initio calculations, Calphad models, thermodynamic databases, web interfaces and visualization tools
 # TAMU
 - company: Summer School on Computational Materials Science
-  date: July 22nd &mdash; August, 3rd 2013
+  date: July 22nd &mdash; August 3rd, 2013
   #authors: May, 2013 &mdash; August, 2013
   description: The summer school discussed both in theory and hands-on computational techniques in materials science across different length-scales. Topics covered included&#58; Density Functional Theory, Cluster Expansion, Molecular Dynamics, Dislocation Dynamics, Micromechanics and Machine Learning
   
 - company: National Seminar on Recent Trends in Applied Sciences and Humanities
-  date: 30 &mdash; 31st October, 2015
+  date: October 30 &mdash; 31st, 2015
   authors: Sudipta Santra, <b>Sayan Samanta</b>, Soumen Basu, Jiten Ghosh
   description: Structural characterization of mesoporous copper oxide as prepared by high energy ball milling from low angle x&dash;ray scattering experiments
   
 - company: Fourth International Conference on Natural Polymers, Bio&dash;Polymers, Bio&dash;Materials, their Composites, Blends, IPNs, and Gels&#58; Macro to Nano Scales
-  date: 12th April, 2015.
+  date: April 12th, 2015.
   authors: Sumit Chabri, <b>Sayan Samanta</b>, Supriya Bera, A. Basumallick, P.P. Chattopadhyay
   description: Thermodynamic modeling of solid solubility change during mechanical alloying of Cu-Co system
   
