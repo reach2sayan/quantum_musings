@@ -7,29 +7,31 @@ mathjax: true
 background: /img/posts/covid/covid_header.jpeg
 ---
 
-<p><b>Coronavirus disease 2019 (COVID-19)</b> is an primarily respiratory disease caused by the <b>severe acute respiratory syndrome coronavirus 2(SARS-CoV-2)</b> that has brought the entire world to a standstill in an unprecendented way than humanity ever expected. The first confirmed case has been traced back to 17th November, 2019 in Wuhan, China. Since then, it has spread like wildfire across the globe. The World Health Organisation declared it as an public health emergency on  24th June, 2020 and a pandemic on 11th of March. As of June 24th, 2020, more than 9.23 million cases have been reported in more than 188 countries, resulting in more than 476,000 deaths.</p>
+<p><i><b>Disclaimer:</b> I am not a epidemiologist. I do not understand much even within the wider gamut of Public Health. All I know is maths (the simplified versions at least), and this is an attempt to understand elementary models and then putting it through a probabilistic analysis pipeline to attempt to infer infection dynamics for personal sanity. The model and analysis is borrowed from a bunch of sources (citations at relevant sections). This is not close to real but only captures the broad trends obtained through drastic simplification and assumption albeit accurate within the bounds of those disclaimers.</i></p>
 
-<p>I'm certain that the you are more than aware of the severity of this disease and how it might have permanently changed the trajectory of human civilisation. Masks might become the next fashion item and 'zooming' and 'social distancing' have become an inherent part of our daily vocabulary. The death, suffering and economic hardships faced by mainly the elderly of the age demographic and the economicaly marginalised segements of the society has been exacerbated beyond controllable measure. Things are gloomy for real. </p>
+<p><b>Coronavirus disease 2019 (COVID-19)</b> is an primarily respiratory disease caused by the <b>severe acute respiratory syndrome coronavirus 2(SARS-CoV-2)</b> that has brought the entire world to a standstill in an unprecendented manner than ever. The first confirmed case has been traced back to 17th November, 2019 in Wuhan, China<a href="https://www.who.int/csr/don/12-january-2020-novel-coronavirus-china/en/">$^1$</a>. Since then, it has spread like wildfire across the globe. The World Health Organisation declared it as an public health emergency on  24th June, 2020 and a pandemic on 11th of March<a href="https://www.who.int/news-room/detail/30-01-2020-statement-on-the-second-meeting-of-the-international-health-regulations-(2005)-emergency-committee-regarding-the-outbreak-of-novel-coronavirus-(2019-ncov)">$^2$</a>. As of June 24th, 2020, more than 9.23 million cases have been reported in more than 188 countries, resulting in more than 476,000 deaths<a href="https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6">$^3$</a>.</p>
 
-<p>However, you have the news for that. I want to talk about things that are more personal. While the world quaratined indoors, we got the chance to introspect on those affairs that are otherwise put in the backburner behind the race of finishing work-deadlines, business trips, office parties, EDM concerts and etc. etc. A lot of folks re-discovered the value of family while some finally learnt to use the grill that was bought on a last minute impulse at a black-Friday sale 3 years ago. </p>
+<p>I'm certain that you are more than just aware of the severity of this disease and how it might have permanently changed the trajectory of human civilisation. Masks might become the next fashion item and 'zooming' and 'social distancing' have already become an inherent part of our daily vocabulary. The death, suffering and economic hardships faced by mainly the elderly in the age demographic and the economicaly marginalised segments of the society has been exacerbated beyond controllable measure. Things are gloomy for real. </p>
 
-<p>I'm tired though. Winter is gone. Summer is here and while I am fortunate enough that my family and circle of friends have all overcome the set-back, tension and turmoil or the past few months, I really want to get back to the good old days. Mirroring the same feeling, places have started to open-up again. Some countries are also slowly opening up national transportation systems. Pretty soon borders would open adn things would be 'back to normal'.</p>
+<p>However, you have the news for that. I want to talk about things that are more personal. While the world quarantined indoors, we got the chance to introspect on those affairs that are otherwise put in the backburner behind the race of finishing work-deadlines, business trips, office parties, EDM concerts and etc. etc. A lot of folks re-discovered the value of family while some finally learnt to use the grill that was bought on a last minute impulse at a black-Friday sale 3 years ago. </p>
 
-<p>That begs the question - Is it safe to resume public activities again? Have we really 'flattened the curve'. What exactly is that curve anyway? Certainly, there are still daily new cases being reported everywhere. This article is an attempt to try to understand the very basics of a mathematical framework that can guide those intuitions. First, we shall discuss breifly a deterministic mathematical model of the spread of an infection. In other words, we shall talk about a simplified SIR (Susceptible-Infectious-Removed) model, develop the scientific lingo and then use existing data to build an estimate of parameters that can help us guide us to the decision - 'Is it safe to go the Gym?'</p>
+<p>I'm tired though. Winter is gone. Summer is here and while I am fortunate enough that my family and circle of friends have all overcome the set-back, tension and turmoil or the past few months, I really want to get back to the good old days. Mirroring the same feeling, places have started to open-up again. Some countries are also slowly opening up national (and international) transportation systems. Pretty soon things would be 'back to normal'.</p>
 
-<h3 class="section-heading">Deterministic SIR Model</h3>
+<p>That begs the question - Is it safe to resume public activities again? Have we really 'flattened the curve'. What exactly is that curve anyway? Certainly, there are still daily new cases being reported everywhere. This article is an attempt to try to understand basics of a mathematical framework that can guide our intuitions. First, we shall discuss breifly a deterministic mathematical model of the spread of an infection to establish the relationship between different quantities that define the spread of infection. In other words, we shall talk about a simplified SIR (Susceptible-Infectious-Removed) model, and then use existing data to build an estimate of parameters via a probabilistic approach that can help us guide us to the decision - 'Is it safe to go the Gym? (Or parties!! while we are at it)'</p>
+
+<h3 class="section-heading">Deterministic SIR Model<a href="https://mathigon.org/course/epidemic-modeling/deterministic-sir-models">$^4$</a></h3>
 
 <p>The SIR model compartmentalises individuals to 3 categories:
 <ul>
   <li>Susceptible - Members of the population that are healthy now but can be infected</li>
   <li>Infectious - Members of the poulations that are already infected and thus can spread the disease to other susceptible members.</li>
-  <li>Removed - Members who have recovered, had previous immunity or are dead. A recovered person cannot spread the disease and nor can get infected. 
+  <li>Removed - Members who have recovered, had previous immunity or are dead. A recovered person can neither spread the disease nor can get infected. 
 </ul>
 </p>
 
 <p>The forthcoming calculation is severely simplified but gathers the interesting trends which an infectious disease charts as it spreads through the population.</p>
 
-<p>Let's begin with a population of $n$ total individuals. All of whom are susceptible to the disease. At time $t = 0$, let's assume we have $1$ infected person and therefore $n-1$ susceptible person. Let us also say that the probability of the spreading of the infection by $1$ infected individual to $1$ susceptible individual is $p$. Therefore it is straightforward to say that in the next day there would be $i_1 = p(n-1)$ infected persons, $s_1 = n-1 - p(n-1)$ susceptible individual and say that the 1 infected individual from yesterday is by definition removed from the population ($r_1 = 1$). It might sound absurd that if $p$ is not an integer, how can we have fraction of indoviduals that are sick, but mind you, this is only an 'average' number. So it's OK.</p>
+<p>Let's begin with a population of $n$ total individuals. All of whom are susceptible to the disease. At time $t = 0$, let's assume we have $1$ infected person and therefore $n-1$ susceptible person. Let us also say that the probability of the spreading of the infection by a particular infected individual to another susceptible individual is $p$. Therefore it is straightforward to say that in the next day there would be $i_1 = p(n-1)$ infected persons, $s_1 = n-1 - p(n-1)$ susceptible individual and say that the 1 infected individual from yesterday is by definition removed from the population ($r_1 = 1$). It might sound absurd that if $p$ is not an integer, how can we have fraction of individuals that are sick, but mind you, this is only an 'average' number. So it's OK.</p>
 
 <p>However a bigger concern is the time-step of 1 day. It is too coarse. Even more importantly, the assumption that each infected person remains infected (thus capable of spreading the infection) for just 1 day is really absurd. So let's address that with the help of differential equations.</p>
 
@@ -39,7 +41,7 @@ background: /img/posts/covid/covid_header.jpeg
   S_{t+\Delta t} - S_t = -pS_tI_t\Delta t
   \end{equation*}
   $$
-  where $S_t, I_t$ are the no. of susceptible and infectious people at time t. Note the no. of susceptible people keep decreasing, have the -ve sign. Let us also recast our transmission probability p in terms of the population, hence $p = \frac{\beta}{n}$ where $\beta$ is the <b>contact-rate</b> which gives the no. of transmission per infected population earlier on in the disease life cycle (when $S_i \approx n$)
+  where $S_t, I_t$ are the no. of susceptible and infectious people at time t. Note the no. of susceptible people keep decreasing, have the -ve sign. Let us also recast our transmission probability p in terms of the population, hence $p = \frac{\beta}{n}$ where $\beta$ is the <b>contact-rate</b> which gives the no. of transmission per infectious person earlier on in the disease life cycle (when $S_i \approx n$)
     $$
   \begin{equation*}
   \Delta S_t = -\beta\frac{S_t}{n}I_t\Delta t
@@ -47,7 +49,7 @@ background: /img/posts/covid/covid_header.jpeg
   $$
 </p>
 
-<p>The change in the no. of infectious people can be given by the no. of susceptible people of got infected at the previous time step as well as the no. of people who got infected in some previous timestep and are still transmitting (called serial interval). $\gamma$ in our calculation is therefore in units of (time)$^{-1}$ and is the reciprocal of the serial intervial. In the case of COVID, the serial interval is about 7 days)
+<p>The change in the no. of infectious people can be given by the no. of susceptible individual who got infected at the previous time step as well as the no. of people who got infected in some previous timestep and are still infectious (called serial interval). $\gamma$ in our calculation is therefore in units of (time)$^{-1}$ and is the reciprocal of the serial interval. In the case of COVID, the serial interval is about 7 days.
   $$
   \begin{align*}
   I_{t+\Delta t} - I_t &= \left(\beta\frac{S_t}{n}I_t - \gamma I_t\right)\Delta t\\
@@ -84,7 +86,7 @@ Running a small simulation, with $\beta = 1.5$, $n = 1000$ for 40 days gives us 
 </figcaption>
 </figure>
 
-<p>If we re-plot this with $\beta = 2.0$, and focus only on the infected curve, we see</p>
+<p>If we re-plot this with $\beta = 2.0$, and focus only on the infectious curve, we see</p>
 
 <figure>
 <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/covid/covid_flattening-the-curve.png">
@@ -92,7 +94,7 @@ Running a small simulation, with $\beta = 1.5$, $n = 1000$ for 40 days gives us 
 </figcaption>
 </figure>
 
-<p>BTW it is this bell-shaped infection curve that is behind the the buzzword - "Flatten the curve", which is another way of saying, reduced the transmission rate.</p>
+<p>It is this bell-shaped infectious population curve that is source of the buzzword - "Flatten the curve", which is another way of stating the reduction in the infection transmission rate. (Greater 'flatness' of the curve is equivalent to lesser person-to-person spread of infection on average)</p>
 
 <h3 class="subsection-heading">Revisiting the Infection curve</h4>
 
@@ -107,18 +109,20 @@ $$
   $$
   \begin{align*}
   \beta\frac{S}{n} - \gamma &> 0\\
-  \text{assuming onset of epidemic, so } & S \approx 1\\
+  \text{assuming onset of epidemic, so } & S \approx n\\
   \underbrace{\frac{\beta}{\gamma}}_{R_0} &> 1
   \end{align*}
   $$
+  This shows what we already knew from popular media, R$_0 > 1$ means infection is spreading exponentially through the population, while R$_0 < 1$ indicate the opposite.
 </p>
 
-<p>We can also connect R$_t$ with R$_0$, by observing, R$_t$ $\propto$ S$_t$, and R$_t$ = R$_0$, when $t = 0$, therefore
+<p>We can also connect a more general quantity R$_t$ with R$_0$, by observing, R$_t$ $\propto$ S$_t$, and R$_t$ = R$_0$, when $t = 0$, therefore
   $$
   \begin{equation*}
   R_t = R_0\frac{S_t}{n}
   \end{equation*}
   $$
+  R$_t$ can be interpreted as a generalised R$_0$ on any given time points than the first day of infection in the population (or other grave assumptions of R$_0$ being constant over time)
 </p>
 
 <p>
@@ -130,7 +134,7 @@ $$
   \therefore \log I_{t+\Delta t} - \log I_t &=  \gamma(R_t - 1)\Delta t
   \end{align*}
   $$
-  However we have data of cumultative confirmed infections (which is basically a reducing list of the number of susceptible person), instead of tracking data for each infected individual from the moment of contact. Hence we could relate R$_t$ with the cumulative number of cases till day T by tracking the change in a small interval $[T, T + \Delta T]$
+  However we have data of cumulative confirmed infections (which is basically a reducing list of the number of susceptible person), instead of tracking data for each infected individual from the onset. Hence we could relate R$_t$ with the cumulative number of cases till day T by tracking the change in a small interval $[T, T + \Delta T]$
   $$
   \begin{align*}
   T_{t+\Delta t} - T_t &= \beta\frac{S_{t+\Delta t}}{n}I_{t+\Delta t}\Delta t\\
@@ -143,7 +147,7 @@ $$
   T_t - T_{t-\Delta t} &= \beta\frac{S_{t}}{n}I_{t}\Delta t
   \end{align*}
   $$
-  Thus we can calculate the diff (difference of consecutive pair) and then from the result of the operation, again divide each consecutive pair. THe quantity thus obtained can be directly related to R$_t$.
+  Thus we can calculate the diff (difference of consecutive pair) and then from the result of the operation, again divide each consecutive pair. The quantity thus obtained can be directly related to R$_t$ as per the equation:
   $$
   \begin{equation*}
   \frac{T_{t+\Delta t} - T_t}{T_t - T_{t-\Delta t}} = e^{\gamma\Delta t(R_t - 1)}
@@ -151,29 +155,29 @@ $$
   $$
 </p>
 
-<h4 class="section-heading">Bayesian Estimation of R$_t$</h4>
+<h4 class="section-heading">Bayesian Estimation of R$_t$<a href="https://github.com/k-sys/covid-19">$^5$</a></h4>
 
-<p> In the last section, we find a relationship between the daily record of cumulative cases and R$_t$. It is wise to reitirate at this point that the quantity R is the measure of if the infection in spreading in the population (R$_t > 1$) of is gradually dying out (R$_t < 1$). To be able to predict its behaviour over time also gives us the ability to guide policy such as the safety of reopening and the associated preparedness for a second wave (if any).
-																																		  </p>
+<p> In the last section, we derived a relationship between the daily record of cumulative cases and R$_t$. It is wise to reiterate at this point that the quantity R is the measure of if the infection in spreading in the population (R$_t > 1$) of is gradually dying out (R$_t < 1$). To be able to predict its behaviour over time also gives us the ability to guide policy such as the safety of reopening and the associated preparedness for a second wave (if any).</p>
 
-<p>The approach follows that taken from a modifief approach to Bettencourt and Ribeiro 2008, the gist of the approach is as follow. So instead of trying to deterministically obtain R$_T$, we assume that it has a certain underlying distribution. Now we know intuitively that although it is rare for a particular infectious individual to pass on the virus, there are lot many of them, hence the average number of infections caused by a single infectious individual is not negligible. The classical distribution governing such behaviour is known as the Poisson Distribution. </p>
+<p>The approach that follows is taken from a modified approach to Bettencourt and Ribeiro 2008, the gist of the approach is as follow. Instead of trying to deterministically obtain R$_T$, we assume that it has a certain underlying distribution. Now we know intuitively that although it is rare for a particular infectious individual to pass on the virus (reducing contact), there are lot many of them, hence the 'average' number of infections caused by a single infectious individual is not negligible. The classical distribution governing such behaviour is known as the Poisson Distribution. </p>
 
-<p>A possion distribution has a single parameter discreet probability mass function. The parameter is also the mean of the distribution. Hence, let us define $\lambda = k_t e^{\gamma(R_t - 1)}$ where $k_t$ is the increase in the number of cases today, and assign it as a possion distribution. Hence, given we see $\lambda$ new cases in average each, the actual no. of new infection on any given day is given by
+<p>A possion distribution is a single parameter discreet probability mass function. The parameter is also the mean of the distribution. Hence, let us define $\lambda = k_t e^{\gamma(R_t - 1)}$ where $k_t$ is the increase in the number of cases today, and assign it as a poisson distribution. Hence, given we expect to see $\lambda$ new cases on average each day, the actual no. of new infection on any given day is given by
   $$
   P(k|\lambda) = \frac{\lambda^k e^{-\lambda}}{k!}
   $$
+  which would be around the expected mean value but slightly deviated by a smaller number.
 </p>
 
 <p>However, out target is to find $P(R_t|k)$, i.e. given all the previous data, what is my R$_t$ in the following days within certain bounds of confidence. For this we can employ Bayes Theorem.
   $$
   P(R_t|k) \propto P(k|R_t)P(R_t)
   $$
-  To use this formulation to zero-in on the most likely value of R$_t$, we assume a prior distribution ($P(R_t)$) that R$_t$ might have. We could then believe in that prior and calculate the probability of saying the data for the day ($P(k|R_t)$). This is known as the likelihood function.  We could then apply the above bayes formula and normalise the resulting distribution so that it sums to 1, This new proability function is called the posterior. We then sample from the posterior ($P(R_t|k)$), next days value of R$_t$ (which is now the prior of day 2) and repeat.</p>
+  To use this formulation to zero-in on the most likely value of R$_t$, we assume a prior distribution ($P(R_t)$) that R$_t$ might have. We then calculate the probability of seeing the data for the day ($P(k|R_t)$) under the prior parameter. This is known as the likelihood function.  We could then apply the above bayes formula and normalise the resulting distribution so that it sums to 1, This new proability function is called the posterior which gives us a better estimate of the true parameter. We then sample from the posterior ($P(R_t|k)$), next days value of R$_t$ (which is now the prior of day 2) and repeat. This iteration in the long run enables us to identify the true $\lambda$ and thereby R$_t$</p>
 
 <p>Lets make this idea more concrete with the help of a toy example. Assume, the new infections for 4 days: 20, 40, 55, 90. If we take each day independently, then the distrbution of R$_t$ is as:</p>
   <figure>
     <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/covid/covid_toy_likelihood.png">
-    <figcaption class="caption text-muted">R$_t$ likelihood calculated independently.
+    <figcaption class="caption text-muted">R$_t$ likelihood calculated independently each day.
     </figcaption>
   </figure>
 
@@ -185,7 +189,7 @@ $$
 </figcaption>
 </figure>
 
-<p>We can see, that with in day 1, the mean was about the days record. On day 2 and day 3, in the light of new information, the mean is switching much less and more importantly is getting narrower implying greater confidence over the prediction  We could also observe this increase in confidence by observing the narrowing of the 95% confidence intervals.</p>.
+<p>We can see, that on day 1, the mean was about the days record of new cases. On day 2 and day 3, in the light of new information, the mean is switching much less and more importantly is getting narrower implying greater confidence over the prediction  We could also observe this increase in confidence by observing the narrowing of the 95% confidence intervals.</p>.
 <figure>
 <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/covid/covid_toy_ml.png">
 <figcaption class="caption text-muted">
@@ -195,6 +199,7 @@ $$
 
 <h4 class="section-heading">Application to Real Indian data</h4>
 
+<p>All data was obtained from <a href="https://api.covid19india.org/"><i>https://api.covid19india.org/</i></a>
 <p>Since the data reported regularly is noisy due to mistakes, backlogs etc., we first apply a gaussian filter to the data (or any other filter that can noise in the report). Following the data smoothening, the daily new cases per day is:</p>
 <figure>
 <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/covid/covid_india_cases.png">
@@ -216,7 +221,7 @@ $$
 </figcaption>
 </figure>
 
-<p>Likewise the $R_t$ prediction for other Indian states are:</p>
+<p>Likewise the $R_t$ prediction for some other Indian states are:</p>
 <figure>
 <img class="img-big" src="https://reach2sayan.github.io/quantum_musings/img/posts/covid/covid_india_ml_ksys.png">
 <figcaption class="caption text-muted">
@@ -240,6 +245,34 @@ $$
 </div> 
 </p>
 
-<p>
-  SO now we have a basic framework to merit the current status of a location provided we have sufficient past data. Please keep in mind that the analysis here is way simplified than the state of the art models used by real epidemiologist. Remember that there is always a risk and specially in India re-opening so soon is actually pretty risky. 
+<h4 class="section-heading">Closing Thoughts</h4>
+
+<p>We now have a basic framework to merit the current status of a location provided we have sufficient past data. Irrespective of the global scenario and absolute numbers which can be deceiving without associated information of density and local record, a real time R$_t$ information is more suited for making personal decisions of public interaction. Note, that the analysis is probabilistic and suffers from the assumptions that may not be in tune with the real dynamics. It also depends on past data, and while we are at the tail-end of a infection curve, slight variations can make or break the calculation. Just because R$_t < 1$ right now, does not mean that we can carelessly venture out since one super-spreader can quickly pull up the numbers very quick. Also, you can be just unlucky to be in close contact with an infectious person irrespective of mean trends. Specially in a crowded place like India, re-opening at a phase where the R$_t$ is still hovering close to 1 is certainly not safe. Let this post guide your intuition but not suggest that all is well. Hold on to those masks and social distancing norms for a few more days. We are almost there. Hope you had an informative read. Have a good rest of your day.</p>
+
+<p><i>I would like to thank Dr. Sam Watson of Brown University, Data Science Initiative for motivating me to write this post. The material discussed here is borrowed from his Data Gymnasia course on Mathigon and his lecture series here in the university. Both Sam and I therefore owe the Bayesian analysis code from Kevin Systrom, founder of Instagram and manager of <a href="https://rt.live/"><u>rt.live</u></a>. Sam also acknowledges <a href="https://www.youtube.com/watch?v=gSqIwXl6IjQ"><u>Tom Britton</u></a> of Stockholm University for ideas about the stochastic SIR model that has not been mentioned here but whose average statistic is explained through a deterministic model. My personal contribution is to calculate the R$_t$ estimate with the data for the republic of India and its states.</i>
 </p>
+
+
+<h4 class="section-heading">Useful Links</h4>
+
+<p>
+  <ol>
+    <li>UVAs Biocomplexity Institute <a href="https://nssac.bii.virginia.edu/covid-19/dashboard/"><u>dashboard</u></a> shows the geographic spread of the virus over time.</li>
+    <li><a href="https://www.3blue1brown.com/videos-blog/simulating-an-epidemic"><u>3Blue1Brown</u></a> presents a video narration examining the effects of various agent-based simulation features.</li>
+    <li>Gabriel Goh provides a <a href="http://gabgoh.github.io/COVID/index.html"><u>simple, elegant calculator</u></a> for illustrating how parameter changes affect trajectory of the infection curve.</li>
+    <li>Kevin Simlers <a href="https://meltingasphalt.com/outbreak/"><u>blog post</u></a> introduces and discusses quite a few manipulatives for varying simulation parameters.</li>
+    <li>The <a href="http://epidemicforecasting.org/"><u>COVID-19 Forecasting Project</u></a> gives estimates for current numbers of active cases as well as projections for the future.</li>
+    <li><a href="https://covid19-projections.com/"><u>COVID Projections</u></a> is another forecasting site with positive reviews from experts.</li>
+    <li><a href="https://rt.live/"><u>rt.live</u></a> tracks US state-by-state estimates for the current reproduction number (R$_t$) over time.</li>
+  </ol>
+</p>
+<p> Here are some data sources for self-exploration:
+  <ol>
+    <li><a href="https://github.com/singer-io/tap-covid-19/#tap-covid-19"><u>Singer tap</u></a> is The most exhaustive data tap on COVID-19 provided by <a href="https://www.singer.io/"><u>https://www.singer.io/</u></a>
+    <li><a href="https://github.com/CSSEGISandData/COVID-19"><u>The Johns Hopkins data</u></a> is perhaps the most canonical source on global COVID-19 data.</li>
+    <li><a href="https://covidtracking.com/"><u>The COVID Tracking Project</u></a> includes data on negative tests as well positive ones, but it only covers the United States.</li>
+  </ol>
+</p>
+
+
+    
