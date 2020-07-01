@@ -116,7 +116,9 @@ $$
   \end{align*}
   $$
   This shows what we already knew from popular media, R$_0 > 1$ means infection is spreading exponentially through the population, while R$_0 < 1$ indicate the opposite.
-</p>
+																		</p>
+
+<p>Another way to understand what R$_0$ represents is by considering that since we have 1 infectious person infecting $\beta$ individuals per unit time for a total of $\frac{1}{\gamma}$ time units, then <b>no. of infections spread by one infectious person on average (R$_0$) is given by $\frac{\beta}{\gamma}$</b></p>
 
 <p>We can also connect a more general quantity R$_t$ with R$_0$, by observing, R$_t$ $\propto$ S$_t$, and R$_t$ = R$_0$, when $t = 0$, therefore
   $$
@@ -124,8 +126,8 @@ $$
   R_t = R_0\frac{S_t}{n}
   \end{equation*}
   $$
-  R$_t$ can be interpreted as a generalised R$_0$ on any given time points than the first day of infection in the population (or other grave assumptions of R$_0$ being constant over time)
-</p>
+  R$_t$ can be interpreted as a generalised R$_0$ on any given time points than the first day of infection in the population (or other grave assumptions of R$_0$ being constant over time). 
+</p> 
 
 <p>
   Therefore we get,
@@ -156,6 +158,35 @@ $$
   \end{equation*}
   $$
 </p>
+
+<h3 class="subsection-heading">Herd Immunity</h3>
+
+<p>Before we delve into estimation of the above discussed parameter R$_t$, here is a brief digression to discuss a concept of <i>herd immunity</i>. The underlying concept lies in the fact that if the disease spreads rapidly throughout the population, such that a major fraction is already infected or removed from the susceptible population, then effectively these people form a sort of barrier protecting those who are still susceptible. This is due to the fact that with increasing non-susceptible population, the probability of a susceptible individual coming in contact with an infectious one become rarer. Imagine, the removed population creating a shield around the susceptible ones protecting them from the infection.</p>
+
+<p>The fraction of population that is to be infected or removed before <i>herd immunity</i> kicks in can be calculated by once again observing the infection rate equation.
+  $$
+  \begin{equation*}
+  \frac{dI}{dt} = \left(\beta\frac{S}{n} - \gamma\right)I
+  \end{equation*}
+  $$
+  By definition we are looking for that point where the rate of infection switches from +ve to -ve, or in other words, when $\frac{dI}{dt} = 0$,
+  $$
+  \begin{align*}
+  \beta\frac{S}{n} - \gamma &= 0\\
+  \implies \frac{S}{n} &= \frac{\gamma}{\beta}\\
+  &= \frac{1}{R_0}
+  \end{align*}
+  $$
+  Hence, the fraction of the population that has to be removed or infected before the rate of infection starts to decrease due to herd immunity (also known as Herd Immunity Threshold, HIT) is given by
+  $$
+  \begin{align*}
+  1 - \frac{S}{n} &= 1 - \frac{1}{R_0}\\
+  \text{HIT } &= 1 - \frac{1}{R_0}
+  \end{align*}
+  $$
+</p>
+
+<p> Note, that this includes that since this included infectious and removed, we could ensure herd immunity without mass-spread infection by increasing the number of initial removed population (i.e. by vaccination). </p>
 
 <h4 class="section-heading">Bayesian Estimation of R$_t$<a href="https://github.com/k-sys/covid-19">$^6$</a></h4>
 
