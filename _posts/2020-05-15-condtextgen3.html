@@ -6,7 +6,7 @@ date: 2020-05-15 23:45:13 -0400
 mathjax: true
 background: /img/posts/condtext3/condtext3_header.jpg
 ---
-
+<div align="justify">
 <p>With all the strength of the <a href="https://reach2sayan.github.io/quantum_musings/2020/05/15/condtextgen2.html">finetuned GPT-2 model</a>, the most state of the art model is far too large and inaccessible to implement and re-train to the particular specifications of a new task. In order to create reviews that work particularly well with respect to generating a particular sentiment, we decided to take the next step and build on GPT-2 using Uber’s <a href="https://eng.uber.com/pplm/">PPLM algorithm</a>.</p>
 
 <p>PPLM, short for Plug and Play Language Model, is a model developed to steer and control successful language models to complete more specified tasks, such as discussing a particular topic or containing a specific sentiment (positive or negative). For example, while GPT-2 is fantastic at encoding information about speech patterns, grammar, and spelling, we would be unable to force GPT-2 to generate a positive sentence given a negative starting text, such as <em>“the food is awful”</em>. Instead, PPLM is able to build on top of GPT-2 in order to create a positive conclusion to a negative sentence, such as: <em>“The food is awful, but there is also the music, the story and the magic! The “Avenged Sevenfold” is a masterfully performed rock musical that will have a strong presence all over the world.”</em></p>
@@ -140,3 +140,4 @@ run_pplm_example(cond_text='This food',
     <li><a href="https://github.com/salesforce/ctrl">https://github.com/salesforce/ctrl</a></li>
 </ol>
 </p>
+</div>

@@ -6,19 +6,19 @@ date: 2020-08-09 23:45:13 -0400
 mathjax: true
 background: /img/posts/DFTML/DFTML_header.jpg
 ---
-
-<p>Obtaining the potential energy of a given configuration of atoms is the keystone of almost all material science research. A phase is a macroscopic manifestation of that atomic structure of it's constituents to a degree of coarseness such that it is chemically distinct and mechanically separable. Now the observed phase (ergo the internal structure) for a given chemical composition of elements (alloys/compounds) is governed by the laws of thermodynamics which states that the stable and ovserved phase is that which has the minimum potential energy. Going forward with the knowledge of the observed phase translates theoretical foundations to engineering applications since the phase dictates the properties of the phase (electrical, mechanical, chemical etc.) which then finds its place in the appropriate use case.
+<div align="justify">
+<p>Obtaining the potential energy of a given configuration of atoms is the keystone of almost all material science research. A phase is a macroscopic manifestation of that atomic structure of it's constituents to a degree of coarseness such that it is chemically distinct and mechanically separable. Now the observed phase (ergo the internal structure) for a given chemical composition of elements (alloys/compounds) is governed by the laws of thermodynamics which states that the stable and observed phase is that which has the minimum potential energy. Going forward with the knowledge of the observed phase translates theoretical foundations to engineering applications since the phase dictates the properties of the phase (electrical, mechanical, chemical etc.) which then finds its place in the appropriate use case.
 </p>
 
-<p>The fundamental equation which maps configurations to energy is the eponymous Schrodingers Wave Equation (SE). However, real world bulk materials contain atoms to the order of $10^{23}$ and since the solution to SE has a complexity of $\mathcal{O}(N^2)$, the true solution becomes intractable pretty fast. An approximate solution to the problem is using Density Functional Theory, which treats the interaction of each particle to a overall local interaction field which is a combination of all the other particles (instead of considering each particle individually as in the full solution). This too unfortunately gets out of hand beyond systems of more than couple 1000 atoms. Traditionally, to overcome this scale problem, several (approximate) methods were developed at different length scales that satisfy the engineering requirements at that scale. Phase Field Modeling, Classical Molecular Dynamics, Dislocation Dynamics, Micromechanics, Finite Element Modelling are some of the available techniques in increasing order of magnitude of length.</p>
+<p>The fundamental equation which maps configurations to energy is the eponymous Schrodingers Wave Equation (SE). However, real world bulk materials contain atoms to the order of $10^{23}$ and since the solution to SE has a complexity of $\mathcal{O}(N^2)$, the true solution becomes intractable pretty fast. An approximate solution to the problem is using Density Functional Theory, which treats the interaction of each particle with an overall local atomic density which is a combination of all the other particles (instead of considering each particle individually as in the full solution). This too unfortunately gets out of hand beyond systems of more than couple 1000 atoms. Traditionally, to overcome this scale problem, several (approximate) methods were developed at different length scales that satisfy the engineering requirements at that scale. Phase Field Modelling, Classical Molecular Dynamics, Dislocation Dynamics, Micro-mechanics, Finite Element Modelling are some of the available techniques in increasing order of magnitude of length.</p>
 
-<p>In this article, we shall limit our focus to the discussion of a bridge of sorts between the atomistic calculations (via DFT) to classical molecular dynamics. In reality, atoms behave according the wave-particle duality as predicted by quantum mechanics (SE is the workhorse behind quantum mechanics), however, within acceptable accuracy, it is possible to assume the behaviour of atoms like classical moelcules obeying Newton's Laws. The subtlety is in the choice of the energy field in which these particles operate. Although exact functional forms differ according to the energy model, the gist of all these models is the interaction of a single atom with a effective potential from the aggregation of all other particles in the system.</p>
+<p>In this article, we shall limit our focus to the discussion of a bridge of sorts between the atomistic calculations (via DFT) to classical molecular dynamics. In reality, atoms behave according the wave-particle duality as predicted by quantum mechanics (SE is the workhorse behind quantum mechanics), however, within acceptable accuracy, it is possible to assume the behaviour of atoms like classical molecules obeying Newton's Laws. The subtlety is in the choice of the energy field in which these particles operate. Although exact functional forms differ according to the energy model, the gist of all these models is the interaction of a single atom with a effective potential from the aggregation of all other particles in the system.</p>
 
-<p>The modus operandi of construction of these fitted energy models is what is known as the potential energy surface (PES) construction. It is an arudous task since most of these are constructed to reproduce select physical constants as per the researchers interest and is not transferable for other calculations. Often it involves iterating the fit over select regions of interest. A few very accurate calculations are done on well sampled space of configurations and then those energies are fitted to a pre-determined functional form to interpolate the entire landscape. Traditionally, the complexity of interactions range from simple pair-potentials (like lennard-jones) to many-body interactions (EAM). However, since the models are just empirical, there are in principle infinite forms that the data could be fit too provided they satisfy certain natural constraints. In a single line, the problem at hand is a non-linear high-dimensional constrained optimisation problem (something that ML methods in are very adept at representing)</p>
+<p>The modus operandi of construction of these fitted energy models is what is known as the potential energy surface (PES) construction. It is an arduous task since most of these are constructed to reproduce select physical constants as per the researchers interest and is not transferable to other calculations. Often it involves iterating the fit over select regions of interest. A few very accurate calculations are done on well sampled space of configurations and then those energies are fitted to a pre-determined functional form to interpolate the entire landscape. Traditionally, the complexity of interactions range from simple pair-potentials (like lennard-jones) to many-body interactions (EAM) and beyond. However, since the models are just empirical, there are in principle infinite forms that the data could be fitted to provided they satisfy certain natural constraints. In summary, the problem at hand is a non-linear high-dimensional constrained optimisation problem (something that ML methods in are very adept at representing)</p>
 
 <p>Let's discuss the aforementioned constraints. From principles of physics, it is well known, that the energy of a configuration remains invariant under the action of translation, pure rotation, pure reflection and all permutations that preserve the space group. A configuration is originally defined by a set of vectors of atom positions. Unfortunately, the cartesian representation does not preserve the physical symmetries. Thus it is import to recast the configuration in an alternative set of descriptors that maintain the symmetries yet gives an unique and unequivocal representation to the configuration under consideration.</p>
 
-<p>Once we settle on the descriptor, we can then choose appropriate fitting stategy to map those descriptors to the associated energy. In the following sections, we shall discuss some of these descriptors and also some methods that help fit those descriptors to the energy. It might be a good time to stress that these methods, although are different in calculations, the spirit of the calculations are all similar in a certain fashion.
+<p>Once we settle on the descriptor, we can then choose appropriate fitting strategy to map those descriptors to the associated energy. In the following sections, we shall discuss some of these descriptors and also some methods that fit energy as a function of descriptorsy. It might be a good time to stress that these methods, although are different in their functional forms, the spirit of the calculations are all similar in a certain fashion.
   $$
   \begin{align*}
   E &= \sum_n \epsilon(q_1^{(n)},\cdots,q_m^{(n)}) 
@@ -34,7 +34,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   where N is the dimension of the descriptor spaces, which we can throw at any fitting mechanism to obtain $\alpha \equiv (\alpha_1,\cdots,\alpha_N)$.
 </p>
 
-<p>We can interpret the K's as a measure of similarity between the configuration whose energy we are interested in and the configurations whose energy we have calculated through more accurate methods in a higher dimensional space than that of the descriptor. This here is the key concept that connects ML paradigms to the construction of a PES. For all the descriptors mentioned below, we shall also close the discussion by comparing the construction to a kernel as per eq.$\eqref{eqn1}$</p>
+<p>We can interpret the K's as a measure of similarity between the configuration whose energy we are interested in and the configurations whose energy we have calculated through more accurate methods in a higher dimensional space than that of the descriptor. This here is the key concept that connects ML paradigms to the construction of a PES.</p>
 
 <p>The descriptors will also be limited to those that can be applied to periodic systems. The discussion is no way exhaustive, rather the ones I know of in my short literature review. However all of these also have code implementations available online so it shouldn't be very difficult to get hands wet on any of these techniques.</p>
 
@@ -43,7 +43,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
 
 <h3 class="subsection-heading">Parrinello-Behler descriptor (Atom Centred Symmetry functions)</h3>
 
-<p>In this method, each atoms position is represented as a set of spherical symmtry function, which is basically a smooth symmtric function of it's distance with neighboring atoms up to a cut-off distance where the functions smoothly vanish to zero. This preserves symmetry as well as relaxes the need to maintain a sort of nearest neighbors list all time. The functions are:
+<p>In this method, each atoms position is represented as a set of spherical symmetry function, which is basically a smooth symmetric function of it's distance with neighbouring atoms up to a cut-off distance where the functions smoothly vanish to zero. This preserves symmetry as well as relaxes the need to maintain a sort of nearest neighbours list all time. The functions are:
   $$
   \begin{align*}
   G_i^1 &= \sum_j f_c(R_{ij})\\
@@ -61,26 +61,26 @@ background: /img/posts/DFTML/DFTML_header.jpg
   0 & \mbox{for } R_{ij} > R_c 
   \end{cases}
   $$
-  Function $G^1$ is just the sum of the cut-off functions for all the neighbors. $G^2$ are shifted gaussians multiplied by cut-off which can describe a spherical shell around the reference atom. $G^3$ is a damped cosine, there can me multiple description of $G^3$ by combinations of different $\kappa$ values. This is a case of over complete set of descriptors, but still there is no ambiguity between different real configurations. 
+  Function $G^1$ is just the sum of the cut-off functions for all the neighbours. $G^2$ are shifted Gaussians multiplied by cut-off which can describe a spherical shell around the reference atom. $G^3$ is a damped cosine, there can me multiple description of $G^3$ by combinations of different $\kappa$ values. This is a case of over complete set of descriptors, but still there is no ambiguity between different real configurations. 
 </p>
 
-<p>Function $G^4$ and $G^5$ have the anuglar functions where $\theta_{ijk} = acos \left(\frac{R_{ij} \cdot R_{ik}}{|R_{ij} \cdot R_{ik}|}\right)$. The maxima of the cosine function can be shited from $\theta_{ijk} = 0$ to $\theta_{ijk} = 180^\circ$ depending on the $\lambda$ parameter. $\xi$ controls the width of the symmtery functions around its center. The distance can also be tuned by the $\eta$ and R$_c$ parameter.</p>
+<p>Function $G^4$ and $G^5$ have the angular functions where $\theta_{ijk} = acos \left(\frac{R_{ij} \cdot R_{ik}}{|R_{ij} \cdot R_{ik}|}\right)$. The maxima of the cosine function can be shifted from $\theta_{ijk} = 0$ to $\theta_{ijk} = 180^\circ$ depending on the $\lambda$ parameter. $\xi$ controls the width of the symmetry functions around its centre. The distance can also be tuned by the $\eta$ and R$_c$ parameter.</p>
 
 <figure>
 <img class="img-fluid" src="https://reach2sayan.github.io/quantum_musings/img/posts/DFTML/DFTML_behlerparinello.png">
-<figcaption class="caption text-muted">Behler parinello functions for one neighbor only. For $G^2$ and G$^3$, cutoff used is 11.3 Bohr. Also for $G^2$, $\eta = 3.0$ Bohr$^{-2}$
+<figcaption class="caption text-muted">Behler parinello functions for one neighbour only. For $G^2$ and G$^3$, cutoff used is 11.3 Bohr. Also for $G^2$, $\eta = 3.0$ Bohr$^{-2}$
 </figcaption>
 </figure>
 
-<p>The authors have used Neural Networks to fit the energy functional. As we shall discuss later, this treatment make it amenable to have anlytic gradients, which can be used to calculate forces and stress tensor as required by an MD or metadynamics for crystal structure prediction.</p>
+<p>The authors have used Neural Networks to fit the energy functional. As we shall discuss later, this treatment make it amenable to have analytic gradients, which can be used to calculate forces and stress tensor as required by an MD or meta-dynamics for crystal structure prediction.</p>
 
 <h3 class="subsection-heading">Bispectrum - A generalised power spectrum</h3>
 
-<p> The first step of the invariant tranformation is to calculate the atomic neighbour density function as
+<p> The first step of the invariant transformation descriptor is to calculate the atomic neighbour density function as
   $$
   \rho_i(R) = \delta (R) + \sum_{ R_{ij} < R_c} f_c(R_{ij}) w_{Z_i}\delta (R - R_{ij})
   $$
-  where i runs up to a cut-off distance. $w_{Z_i}$ is an unique weight factor to distinguish different species. 
+  where $i$ runs up to a cut-off distance. $w_{Z_i}$ is an unique weight factor to distinguish different species. 
 					   </p>
 
 <p> At first, we expand every point on the unit sphere pointing at R (basically considering the angular part only), we express the atomic density is terms of it spherical harmonics.
@@ -99,7 +99,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
     W_l &= \sum_{m_1,m_2,m_3 = -l}^l \begin{pmatrix}l & l & l \\ m_1 & m_2 & m_3\end{pmatrix}Q_{lm_1}Q_{lm_2}Q_{lm_3}
     \end{align}
     $$
-    The factor in parentheses are the wigner 3 $jm$ symbol
+    The factor in parentheses are the Wigner 3 $jm$ symbol
 </p>
 
 <p><b>Power Spectrum</b></p>
@@ -126,7 +126,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   $$
   b_{ll_1l_2} = \sum_{m=-l}^l\sum_{m=-l_1}^{l_1}\sum_{m=-l_2}^{l_2} c_lm^*C_{mm_1m_2}^{ll_1l_2}c_{l_1m_1}c_{l_2m_2}
   $$
-  We can guess that it looks similar to third-order bond-order parameters. Infact, the wigner 3$jm$ symbol and the Clebsch-Gordan coefficients are related by
+  where is the evidently similar to third-order bond-order parameters. In fact, the Wigner 3$jm$ symbol and the Clebsch-Gordan coefficients are related by
   $$
   \begin{pmatrix}l_1 & l_2 & l_3 \\ m_1 & m_2 & m_3\end{pmatrix} = \frac{(-1)^{l_1-l_2-m_3}}{\sqrt{2l_3+1}}C^{l_1l_2l_3}_{m_1m_2-m_3}
   $$
@@ -158,9 +158,9 @@ background: /img/posts/DFTML/DFTML_header.jpg
 
 <p><b>4 dimensional Power spectrum and Bispectrum</b></p>
 
-<p>Another representation that does not need an explicit radial function is by extending the representation in spherical harmonics of 4 dimension in a fixed hypersphere of radius $r_o$. The mapping of the cartesian to 4-D polar coordinates is therefore
+<p>Another representation that does not need an explicit radial function is by extending the representation in spherical harmonics of 4 dimension in a fixed hypersphere of radius $r_o$. The mapping of the Cartesian to 4-D polar coordinates is therefore
   $$
-  \begin{pmatrix} x \\ y\\ x\end{pmatrix} \rightarrow \begin{pmatrix} \phi = \tan^{-1} y/x \\ \theta = \cos^{-1} z/|r|\\  \theta_o = \pi |r|/r_o\end{pmatrix}
+  \begin{pmatrix} x \\ y\\ z\end{pmatrix} \rightarrow \begin{pmatrix} \phi = \tan^{-1} y/x \\ \theta = \cos^{-1} z/|r|\\  \theta_o = \pi |r|/r_o\end{pmatrix}
   $$
 </p>
 
@@ -168,7 +168,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   $$
   \rho = \sum_{j=0}^\infty\sum_{m,m'=-j}^jc_{m,m'}^jU_{m,m'}^j
   $$
-  where, $c_{m,m'}^j = \left< U_{m,m}^j|\rho\right>$
+  where, $c_{m,m'}^j = \left< U_{m,m'}^j|\rho\right>$
 </p>
 
 <p>As in the 3D case, the bispectrum elements of for the SO(4) groups are
@@ -181,7 +181,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   $$
 </p>
 
-<p>These descriptors besides having physical significance are also systematically improvable based on the the application requirements. Although the description is not complete in principle, the class of functions such as sum of finite number of delta functions (such as the atomic neighbor density) it can be demonstrated that the particular set of description is likely overcomplete.
+<p>These descriptors besides having physical significance are also systematically improvable based on the the application requirements. Although the description is not complete in principle, the class of functions such as sum of finite number of delta functions (such as the atomic neighbour density) it can be demonstrated that the particular set of description is likely over-complete.
 </p>
 
 <h3 class="subsection-heading">SOAP - Smooth Overlap of Atomic Positions</h3>
@@ -201,7 +201,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   $$
 </p>
 
-<p>To analytically evaluate the above integral, let's take an atomic neighbour density as a sum of gaussian centered on each atom (instead of earlier delta functions)
+<p>To analytically evaluate the above integral, let's take an atomic neighbour density as a sum of Gaussian centred on each atom (instead of earlier delta functions)
   $$
   \rho(r) = \sum_i \exp (-\alpha|r - r_i|^2) = \sum_i\sum_{lm}c^i_{lm}(r)Y_{lm}(\hat{r})
   $$
@@ -209,7 +209,7 @@ background: /img/posts/DFTML/DFTML_header.jpg
   $$
   c^i_{lm} \equiv 4\pi\exp[-\alpha (r^2 - r_i^2)]\iota_l (2\alpha rr_i)Y^*_{lm}(\hat{r_i})
   $$
-  and $\iota_l$ is the modified bessel function of the first kind.
+  and $\iota_l$ is the modified Bessel function of the first kind.
 </p>
 
 <p>Further defining
@@ -255,7 +255,7 @@ $$
 </p>
 
 <p>
-'The above equations expose that the SOAP kernel is equivalent to the SO(3) bispectrum descriptor along with a gaussian atomic neghbour density function and a dot product covariance kernel. Although this is the same technique as before, the SOAP methodology eliminates the need for the introduction of some ad hoc choices, while giving sufficient control via the $\alpha$ and $\xi$ hyperparameters.
+'The above equations expose that the SOAP kernel is equivalent to the SO(3) bispectrum descriptor along with a Gaussian atomic neighbour density function and a dot product covariance kernel. Although this is the same technique as before, the SOAP methodology eliminates the need for the introduction of some ad hoc choices, while giving sufficient control via the $\alpha$ and $\xi$ hyperparameters.
 </p>
 
 
@@ -265,7 +265,7 @@ $$
 In the previous section, we discussed the different descriptors of a configuration which preserves the essential materials symmetry. In this section, we shall see discuss the techniques that map those descriptors to the required energy. Although in principle the descriptors are independent of the strategy used to obtain the energy, researchers have traditionally paired descriptors with their choice of techniques. Since the development of both were done by same researcher, some descriptors follow a natural association to a fitting strategy.  
 </p>
 
-<h3 class="subsection-heading">Artifical Neural Networks</h3>
+<h3 class="subsection-heading">Artificial Neural Networks</h3>
 
 <p>
 Artificial Neural Networks (ANN/NN) is the oldest ML fitting technique. To the best of my knowledge, the best results were obtained in conjunction with ACSF (Behler-Parinello) descriptors. The image below gives a toy structure for a NN model, where on the left, the inputs are the different sets of descriptors $G_i$ as defined by ACSF, while on the right we obtain the potential energy E for that given set of $G_i$s 
@@ -282,7 +282,7 @@ Artificial Neural Networks (ANN/NN) is the oldest ML fitting technique. To the b
   $$
   E = f\left(b_1^3 + \sum_{k=1}^3 a_{k1}^{23} \cdot f\left(b_k^2 + \sum_{j=1}^3 a_{jk}^{12} \cdot f\left(b_j^1 + \sum_{i=1}^2 G_i \cdot a_{ij}^{01}\right)\right)\right)
   $$
-  Where $b_i^j$ are biases, which are tunable offsets to the activations of a layer that are determined by weights $a_{ij}^{kl}$ that are the fitting parameters relating the ith node of the jth layer to the kth node of the jth layer. $f()$ are the non-linearities to the activations, which are traditionally hyperbolic tangents or gaussians.
+  Where $b_i^j$ are biases, which are tunable offsets to the activations of a layer that are determined by weights $a_{ij}^{kl}$ that are the fitting parameters relating the ith node of the jth layer to the kth node of the jth layer. $f()$ are the non-linearities to the activations, which are traditionally hyperbolic tangents or Gaussian's.
 </p>
 
 <h3 class="subsection-heading">Gaussian Approximation Potentials (GAP)</h3>
@@ -311,18 +311,25 @@ Artificial Neural Networks (ANN/NN) is the oldest ML fitting technique. To the b
 </p>
 
 <p>
-  The SNAP energy dies to its analytical form can also be explicitly differentiated to obtain forces and stress-tensors.
+  The SNAP energy due to its analytical form can also be explicitly differentiated to obtain forces and stress-tensors.
 </p>
 
-<h3 class="section-heading">Implmentations</h3>
+<h3 class="section-heading">Implementations</h3>
 
 <ul>
   <li> DScribe: <a href="https://singroup.github.io/dscribe/latest/#">https://singroup.github.io/dscribe/latest/#</a>
-    <p>Python package to generate SOAP and ACSF descriptors</p>
+    <br>Python package to generate SOAP and ACSF descriptors.
   </li>
   <li>
     Quippy: <a href="https://github.com/libAtoms/QUIP">https://github.com/libAtoms/QUIP</a>
-    <p>Fortran package to fit GAP potentials.
+    <br>Fortran package to fit GAP potentials.
+  </li>
+  <li>RuNNer: <a href="https://www.uni-goettingen.de/de/560580.html">https://www.uni-goettingen.de/de/560580.html</a>
+    <br>The NN PES code by Joerg Behler.
+  </li>
+  <li>LAMMPS: <a href="https://lammps.sandia.gov/doc/pair_snap.html">https://lammps.sandia.gov/doc/pair_snap.html</a>
+<br>
+Support SNAP potentials
   </li>
 </ul>
   
@@ -333,13 +340,13 @@ Artificial Neural Networks (ANN/NN) is the oldest ML fitting technique. To the b
   <li> General Review 1: A. P. Bartók, R. Kondor, and G. Csányi, Phys. Rev. B 87, 184115 (2013)</li>
   <li> General Review 2 and SOAP: J. Behler, J. Chem. Phys. 145, 170901 (2016)</li>
   <li> Embedded Atom Method (EAM): M. S. Daw, S. M. Foiles and M. I. Baskes, Mater. Sci. Rep, 9 (1993)</li>
-  <li> Atom Centered Symmetry Functions: J. Behler, J. Chem. Phys. 134, 074106 (2011)</li>
+  <li> Atom Centred Symmetry Functions: J. Behler, J. Chem. Phys. 134, 074106 (2011)</li>
   <li> Bispectrum: A. P. Bartók, M. C. Payne, R. Kondor, and G. Csányi, Phys. Rev. Lett. 104, 136403 (2010)</li>
   <li> GAP: A. P. Bartók, and G. Csányi, Int. J. Quantum Chem, 115,  (2015)</li>
   <li> ANN: J. Behler and M. Parrinello, Phys. Rev. Lett. 98, 146401 (2007).</li>
   <li> SNAP: A. P. Thompson, L. P. Swiler, C. R. Trott, S. M. Foiles, and G. J. Tucker, J. Comput. Phys. 285, 316 (2015).</li>
 </ul>
-
+</div>
 
   
 
