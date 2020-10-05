@@ -9,7 +9,7 @@ background: /img/posts/spotify/spotify_header.jpg
 
 <div align="justify">
 <h2 class="section-heading">Introduction</h2>  
-<p>In this report, an attempt has been made to predict whether a particular song will appear in the <b>US top 200 billboard</b>$^1$ based on the songs given it’s acoustic features. The Dataset under consideration is The Billboard 200 acoustic data which encompasses the entire chart from 1963-2019, along with the EchoNest acoustic features of as many songs as available. This dataset was curated for an article$^3$ on the data science analytics website Components. However that piece dealt with the album length alone, there could be plethora of other questions and analysis that can be answered/performed with this data.Since this dataset contain only songs that appeared on the billboard, further data (songsnot on the billboard) was obtained using the Python Spotify API$^2$ (aptly called Spotipy).</p>
+<p>In this report, an attempt has been made to predict whether a particular song will appear in the <b>US top 200 billboard</b>$^1$ based on the songs given it’s acoustic features. The Dataset under consideration is The Billboard 200 acoustic data which encompasses the entire chart from 1963-2019, along with the EchoNest acoustic features of as many songs as available. This dataset was curated for an article$^2$ on the data science analytics website Components. However that piece dealt with the album length alone, there could be plethora of other questions and analysis that can be answered/performed with this data. Since this dataset contain only songs that appeared on the billboard, further data (songs not on the billboard) was obtained using the Python Spotify API$^3$ (aptly called Spotipy).</p>
 
 <p>The data obtained was highly imbalanced, with the acoustic features higly overlapping. The baseline accuracy is at ≈ 88%. A no. of classification algorithms were performed with stratified k-fold cross validation. Among all the models analysed, only the ones with accuracy above baseline are discussed here. These include Random Forest, XGBoost and Adaboost. The entire machine learning pipeline including data description, exploratory data analysis, cross-validation, model inspection and feature importance have been performed and the results have been discussed with measures of improvement for future studies.</p>
 
@@ -98,8 +98,6 @@ In addition, we have the name of the song, name of the artist, the album it appe
 
 <h2 class="section-heading">Exploratory Data Analysis</h2>
 
-<h3 class="subsection-heading">Feature Correlation and Dataset Balance</h3>
-
 <p>The features are not very correlated from each other as observed in figure below while the dataset is highly imbalanced (≈88%). However the data is distributed to match the overall dataset balance when observed on a yearly basis.</p>
 
 <figure>
@@ -119,7 +117,7 @@ In addition, we have the name of the song, name of the artist, the album it appe
 the billboard</p>
 
 <figure>
-  <div class="row">
+OB  <div class="row">
   <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_box_decadeacousticness.png" alt="Top and Bottom 10", style="width:50%">
   <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_box_decadeenergy.png" alt="Top and Bottom 10", style="width:50%">
   </div>
@@ -129,7 +127,7 @@ the billboard</p>
   <figcaption class="caption text-muted">Evolution with time: Valence,  Energy and Acousticness</figcaption>
 </figure>
 
-<p>Surprisingly, the range of values for most features do not vary with time, except acousticness, valence and energy. With the advent of electronics, it makes sense that songs have been departing from pure acoustic nature. Likewise, rock, metal, and more recently hiphop and electronic dance music have increased the energy levels of songs. Suprisingly,the valence (an indicator of the positiveness of a song) has slightly decreased over the year. Due the low variablity of acoustic features and imbalance of the dataset, before we move to model evaluation, we expect the classifier to have a tough time (as can be guessed from the plot of the 1st two principal component where the points are highly overlapping)</p>
+<p>It was observed that the range of values for most features do not vary with time, except acousticness, valence and energy. With the advent of electronics, it makes sense that songs have been departing from pure acoustic nature. Likewise, rock, metal, and more recently hiphop and electronic dance music have increased the energy levels of songs. Suprisingly,the valence (an indicator of the positiveness of a song) has slightly decreased over the year. Due the low variablity of acoustic features and imbalance of the dataset, before we move to model evaluation, we expect the classifier to have a tough time (as can be guessed from the plot of the 1st two principal component where the points are highly overlapping)</p>
 
 <figure>
   <center>
@@ -144,9 +142,9 @@ the billboard</p>
 
 <p> The following are the broad categories of pre-processing applied to the datasets:
   <ol>
-    <li> The date values (date released and dates on the chart) were each parsed to pythondatetime object and split to 3 columns - day,month, year. No scaling is done as yet onthese features.</li>
+    <li> The date values (date released and dates on the chart) were each parsed to python datetime object and split to 3 columns - day,month, year. No scaling is done as yet onthese features.</li>
     <li> The song_id and album_id are kept in the spotify unique id format. To be scaled upon further discussion.</li>
-    <li> Acousticness, danceability, energy, instrumentalness, liveness, mode, speechiness, va-lence features are already scaled between[0, 1]. No further pre-processing was required.</li>
+    <li> Acousticness, danceability, energy, instrumentalness, liveness, mode, speechiness, valence features are already scaled between[0, 1]. No further pre-processing was required.</li>
     <li> Rank, track duration, key, tempo, time signature, loudness, album duration, albumlength, were all scaled using the StandardScaler.</li>
     <li> The billboard label is added as 1 (if present) and 0 otherwise.</li>
   </ol>
@@ -156,9 +154,9 @@ the billboard</p>
 
 <h3 class="subsection-heading">Cross Validation Pipeline</h3>
 
-<p>In this study, we are trying to predict whether future songs would appear on the billboard,hence time of the song is not a factor in the requirements. We could have dropped the datefeature but would anyway expect it have least importance.</p>
+<p>In this study, we are trying to predict whether future songs would appear on the billboard,hence time of the song is not a factor in the requirements. We could have dropped the date feature but would anyway expect it have least importance.</p>
 
-<p>However the data is highly imbalanced. Therefore the choice of cross-validation pipelinewas chosen to be a stratified KFold Cross Validation, where the global distribution of classesis maintained in the K fold train,CV splits. The result of the splits are as follows
+<p>However the data is highly imbalanced. Therefore the choice of cross-validation pipelinewas chosen to be a stratified KFold Cross Validation, where the global distribution of classesis maintained in the K fold train, CV splits. The result of the splits are as follows
 
 <figure>
   <center>
@@ -169,7 +167,7 @@ the billboard</p>
 
 <h2 class="section-heading">Model Selection</h3>
 
-<p>Due to the large number of datapoints, certain popular techniques such as K-nearest Neigh-bours, and Support Vector Machine Classification failed to converge after 12 hours. Othermethods such as Linear and Quadratic discriminant analysis failed to improve model perfor-mance over the baseline. For each of the model, we performed an exhaustive search for theparameter value in each estimator. Details of which is also described under each method.</p>
+<p>Due to the large number of datapoints, certain popular techniques such as K-nearest Neigh-bours, and Support Vector Machine Classification failed to converge after 12 hours. Othermethods such as Linear and Quadratic discriminant analysis failed to improve model performance over the baseline. For each of the model, we performed an exhaustive search for the parameter value in each estimator. Details of which is also described under each method.</p>
 
 <p><b>Evaluation Metric</b>: For all the models, we used the accuracy score since it is a binaryclassification problem.</p>
 
@@ -214,7 +212,7 @@ the billboard</p>
 <figure>
   <center>
     <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_xgboost_cm.png" ></center>
-  <figcaption class="caption text-muted">Feature importance for Random Forest classification</figcaption>
+  <figcaption class="caption text-muted">Normalised confusion matrix for XGBoost classification</figcaption>
 </figure>
 </p>
 <p>The feature importance by based on F score (as per SelectFromModel) under XGBoost is as follows:
@@ -276,8 +274,8 @@ the billboard</p>
 <p>
 <ol>
 <li><a href="https://www.kaggle.com/snapcrack/the-billboard-200-acoustic-data">https://www.kaggle.com/snapcrack/the-billboard-200-acoustic-data</a></li>
-<li><a href="https://spotipy.readthedocs.io/en/latest/">https://spotipy.readthedocs.io/en/latest/</a></li>
 <li><a href="https://components.one/posts/it-goes-on-album-length/">https://components.one/posts/it-goes-on-album-length/</a></li>
+<li><a href="https://spotipy.readthedocs.io/en/latest/">https://spotipy.readthedocs.io/en/latest/</a></li>
 
 </ol>
 </p>
