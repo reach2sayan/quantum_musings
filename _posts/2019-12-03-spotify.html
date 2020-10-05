@@ -1,0 +1,285 @@
+---
+layout: post
+title: Spotify Billboard Classifier 
+subtitle: An attempt to predict whether a song shall appear on the US top 200 billboard
+date: 2019-12-03 23:45:13 -0400
+mathjax: true
+background: /img/posts/spotify/spotify_header.jpg
+---
+
+<div align="justify">
+<h2 class="section-heading">Introduction</h2>  
+<p>In this report, an attempt has been made to predict whether a particular song will appear in the <b>US top 200 billboard</b>$^1$ based on the songs given it’s acoustic features. The Dataset under consideration is The Billboard 200 acoustic data which encompasses the entire chart from 1963-2019, along with the EchoNest acoustic features of as many songs as available. This dataset was curated for an article$^3$ on the data science analytics website Components. However that piece dealt with the album length alone, there could be plethora of other questions and analysis that can be answered/performed with this data.Since this dataset contain only songs that appeared on the billboard, further data (songsnot on the billboard) was obtained using the Python Spotify API$^2$ (aptly called Spotipy).</p>
+
+<p>The data obtained was highly imbalanced, with the acoustic features higly overlapping. The baseline accuracy is at ≈ 88%. A no. of classification algorithms were performed with stratified k-fold cross validation. Among all the models analysed, only the ones with accuracy above baseline are discussed here. These include Random Forest, XGBoost and Adaboost. The entire machine learning pipeline including data description, exploratory data analysis, cross-validation, model inspection and feature importance have been performed and the results have been discussed with measures of improvement for future studies.</p>
+
+<p> Here is a description of the different acoustic features in the dataset:
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-color:#ccc;border-spacing:0;margin:0px auto;}
+.tg td{background-color:#fff;border-bottom-width:1px;border-color:#ccc;border-style:solid;border-top-width:1px;
+  border-width:0px;color:#333;font-family:Arial, sans-serif;font-size:14px;overflow:hidden;padding:7px 15px;
+  word-break:normal;}
+.tg th{background-color:#f0f0f0;border-bottom-width:1px;border-color:#ccc;border-style:solid;border-top-width:1px;
+  border-width:0px;color:#333;font-family:Arial, sans-serif;font-size:14px;font-weight:normal;overflow:hidden;
+  padding:7px 15px;word-break:normal;}
+.tg .tg-ih3h{border-color:inherit;position:-webkit-sticky;position:sticky;text-align:center;top:-1px;vertical-align:top;
+  will-change:transform}
+.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-abip{background-color:#f9f9f9;border-color:inherit;text-align:center;vertical-align:top}
+.tg .tg-btxf{background-color:#f9f9f9;border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+@media screen and (max-width: 767px) {.tg {width: auto !important;}.tg col {width: auto !important;}.tg-wrap {overflow-x: auto;-webkit-overflow-scrolling: touch;margin: auto 0px;}}</style>
+<div class="tg-wrap"><table class="tg">
+    <caption style="text-align:center">Acoustic Features Description</caption>
+    <thead>
+      <tr>
+	<th class="tg-ih3h"><span style="font-weight:bold">Features</span></th>
+	<th class="tg-ih3h"><span style="font-weight:bold">Descriptions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td class="tg-abip">key</td>
+	<td class="tg-btxf">The estimated overall key of the track. If no key was detected, the value is<br>-1.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">duration_ms</td>
+	<td class="tg-0pky">The duration of the track in milliseconds</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">mode</td>
+	<td class="tg-btxf">Mode indicates the modality (major or minor) of a track.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">time_signature</td>
+	<td class="tg-0pky">An estimated overall time signature (beats in each bar) of a track.</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">acousticness</td>
+	<td class="tg-btxf">A confidence measure from 0.0 to 1.0 of whether the track is acoustic.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">danceability</td>
+	<td class="tg-0pky">Describes how suitable a track is for dancing based on a combination<br>of musical elements.  A value of 0.0 is least danceable and 1.0 is most<br>danceable.</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">energy</td>
+	<td class="tg-btxf">Is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity<br>and activity.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">liveness</td>
+	<td class="tg-0pky">Detects the presence of an audience in the recording.</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">instrumentalness</td>
+	<td class="tg-btxf">Predicts whether a track contains no vocals. “Ooh” and “aah” sounds are<br>treated as instrumental in this context.  Rap or spoken word tracks are<br>clearly “vocal”.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">loudness</td>
+	<td class="tg-0pky">The overall loudness of a track in decibels (dB).</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">speechiness</td>
+	<td class="tg-btxf">Detects the presence of spoken words in a track.</td>
+      </tr>
+      <tr>
+	<td class="tg-c3ow">valence</td>
+	<td class="tg-0pky">A measure from 0.0 to 1.0 describing the musical positiveness conveyed<br>by a track.</td>
+      </tr>
+      <tr>
+	<td class="tg-abip">tempo</td>
+	<td class="tg-btxf">The overall estimated tempo of a track in beats per minute (BPM).</td>
+      </tr>
+    </tbody>
+</table></div>
+
+In addition, we have the name of the song, name of the artist, the album it appeared on, thedate of release and the no. of tracks on the album.</p>
+
+<h2 class="section-heading">Exploratory Data Analysis</h2>
+
+<h3 class="subsection-heading">Feature Correlation and Dataset Balance</h3>
+
+<p>The features are not very correlated from each other as observed in figure below while the dataset is highly imbalanced (≈88%). However the data is distributed to match the overall dataset balance when observed on a yearly basis.</p>
+
+<figure>
+  <center><img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_corr_coeff.png" alt="Top and Bottom 10", style="width:75%"></center>
+  <figcaption class="caption text-muted">Feature Correlation </figcaption>
+</figure>
+
+<figure>
+  <div class="row">
+  <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_balance.png" alt="Top and Bottom 10", style="width:50%">
+  <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_decade_stacked_bar.png" alt="Top and Bottom 10", style="width:50%">
+  </div>
+  <figcaption class="caption text-muted">Dataset Balance and balance per decade</figcaption>
+</figure>
+
+<p>To study the evolution and behaviour,we also checked how the acoustic features evolve with time and with respect to songs on or not on
+the billboard</p>
+
+<figure>
+  <div class="row">
+  <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_box_decadeacousticness.png" alt="Top and Bottom 10", style="width:50%">
+  <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_box_decadeenergy.png" alt="Top and Bottom 10", style="width:50%">
+  </div>
+  <div class="row">
+    <center><img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_box_decadevalence.png" alt="Top and Bottom 10", style="width:50%"></center>
+  </div>
+  <figcaption class="caption text-muted">Evolution with time: Valence,  Energy and Acousticness</figcaption>
+</figure>
+
+<p>Surprisingly, the range of values for most features do not vary with time, except acousticness, valence and energy. With the advent of electronics, it makes sense that songs have been departing from pure acoustic nature. Likewise, rock, metal, and more recently hiphop and electronic dance music have increased the energy levels of songs. Suprisingly,the valence (an indicator of the positiveness of a song) has slightly decreased over the year. Due the low variablity of acoustic features and imbalance of the dataset, before we move to model evaluation, we expect the classifier to have a tough time (as can be guessed from the plot of the 1st two principal component where the points are highly overlapping)</p>
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_PCA1_2.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Plot of 1st two principal component</figcaption>
+</figure>
+
+
+<h2 class="section-heading">Machine Learning Pipelie</h2>
+
+<h3 class="subsection-heading">Preprocessing</h3>
+
+<p> The following are the broad categories of pre-processing applied to the datasets:
+  <ol>
+    <li> The date values (date released and dates on the chart) were each parsed to pythondatetime object and split to 3 columns - day,month, year. No scaling is done as yet onthese features.</li>
+    <li> The song_id and album_id are kept in the spotify unique id format. To be scaled upon further discussion.</li>
+    <li> Acousticness, danceability, energy, instrumentalness, liveness, mode, speechiness, va-lence features are already scaled between[0, 1]. No further pre-processing was required.</li>
+    <li> Rank, track duration, key, tempo, time signature, loudness, album duration, albumlength, were all scaled using the StandardScaler.</li>
+    <li> The billboard label is added as 1 (if present) and 0 otherwise.</li>
+  </ol>
+</p>
+
+<p>Note for the final analysis, I have ignored the month and day as it is arbitrary and does not play any role when it comes to billboard consideration, and thus work only with the year. Since artist name, album name and song name was only used to curate songs,they are dropped from the final dataset before pre-processing.</p>
+
+<h3 class="subsection-heading">Cross Validation Pipeline</h3>
+
+<p>In this study, we are trying to predict whether future songs would appear on the billboard,hence time of the song is not a factor in the requirements. We could have dropped the datefeature but would anyway expect it have least importance.</p>
+
+<p>However the data is highly imbalanced. Therefore the choice of cross-validation pipelinewas chosen to be a stratified KFold Cross Validation, where the global distribution of classesis maintained in the K fold train,CV splits. The result of the splits are as follows
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_CV_split.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Cross Validation Folds. Training set is shown in blue, CV set in red</figcaption>
+</figure>
+</p>
+
+<h2 class="section-heading">Model Selection</h3>
+
+<p>Due to the large number of datapoints, certain popular techniques such as K-nearest Neigh-bours, and Support Vector Machine Classification failed to converge after 12 hours. Othermethods such as Linear and Quadratic discriminant analysis failed to improve model perfor-mance over the baseline. For each of the model, we performed an exhaustive search for theparameter value in each estimator. Details of which is also described under each method.</p>
+
+<p><b>Evaluation Metric</b>: For all the models, we used the accuracy score since it is a binaryclassification problem.</p>
+
+<h3 class="subsection-heading">Random Forest Classification</h3>
+
+<p><b>Test Baseline</b>: 0.8807
+  <br>
+  <b>Test Score</b>: 0.8865
+  <br>
+  <b>Optimal Parameters</b>: <br>n_estimators: 100, <br>criterion: gini, <br> max_depth: 10, <br>min_samples_split: 3
+</p>
+
+<p>The normalised confusion matrix is as follows:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_randomforest_cm_normed.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Normalised Confusion Matrix for Random Forest classification</figcaption>
+</figure>
+</p>
+
+<p>The feature importance under random forest are:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_feature_imp_randfor.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Feature importance for Random Forest classification</figcaption>
+</figure>
+</p>
+
+<h3 class="subsection-heading">XGBoost Classification</h3>
+
+<p><b>Test Baseline</b>: 0.8807
+  <br>
+  <b>Test Score</b>: 0.8865
+  <br>
+  <b>Optimal Parameters</b>: <br>max_depth: 15, <br>gamma: 0.4, <br> min_child_weight: 1, <br>learning_rate: 0.3
+</p>
+
+<p>The normalised confusion matrix is as follows:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_xgboost_cm_normed.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Normalised Confusion Matrix from XGBoost classification</figcaption>
+</figure>
+</p>
+
+<p>The feature importance by based on F score (as per SelectFromModel) under XGBoost is as follows:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_feature_imp_sfm_xgboost.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted"> Feature importance by SelectFromModel for XGBoost Classification</figcaption>
+</figure>
+</p>
+<h3 class="subsection-heading">Adaboost Classification</h3>
+
+<p><b>Test Baseline</b>: 0.8807
+  <br>
+  <b>Test Score</b>: 0.8865
+  <br>
+  <b>Optimal Parameters</b>: <br>algorithm: SAMME.R, <br>gamma: 0.4, <br> n_estimators: 100, <br>learning_rate: 0.1
+</p>
+
+<p>The normalised confusion matrix is as follows:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_adaboost_cm_normed.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">Normalised Confusion Matrix for Adaboost classification</figcaption>
+</figure>
+</p>
+
+<p>The feature importance under AdaBoost is shown as follows:
+
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_feature_imp_adaboost.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted"> Feature importance for Adaboost Classification</figcaption>
+</figure>
+</p>
+
+<p>The tree estimator with least error of the adaboost classifier is shown as follows:
+<figure>
+  <center>
+    <img class="img-fluid" position="absolute" src="https://reach2sayan.github.io/quantum_musings/img/posts/spotify/spotify_tree_adaboost1.png" alt="Top and Bottom 10"></center>
+  <figcaption class="caption text-muted">  Estimator with least error</figcaption>
+</figure>
+</p>
+
+<h2 class="section-heading">Outlook</h2>
+
+<p>
+  The results of this project was not satisfactory. Except track length no other feature showed any importance that makes it stand out. The good news is that we can suggest solid steps tofurther improvement. The most important of them would be:
+  <ol>
+    <li>The dataset was highly imbalanced. Having a much more evenly divided set among the classes would improve the results.</li>
+    <li>The acoustic features of songs in both the classes overlap highly. To a large extent this was a fault of the method of data collection for songs that are not in the billboard. Theywere based on songs by artist that are similar to the artist in the billboard.</li>
+    <li>Advanced deep-learning methods could improve the result</li>
+    <li>Due to lack of time, certain methods such as support vector machine classification or K-nearest neighbours couldn’t be implemented. Among the models tested on, a widergrid search might have also led to some improvements</li>
+  </ol>
+</p>
+<h2 class="section-heading">References</h2>
+
+<p>
+<ol>
+<li><a href="https://www.kaggle.com/snapcrack/the-billboard-200-acoustic-data">https://www.kaggle.com/snapcrack/the-billboard-200-acoustic-data</a></li>
+<li><a href="https://spotipy.readthedocs.io/en/latest/">https://spotipy.readthedocs.io/en/latest/</a></li>
+<li><a href="https://components.one/posts/it-goes-on-album-length/">https://components.one/posts/it-goes-on-album-length/</a></li>
+
+</ol>
+</p>
+</div>
